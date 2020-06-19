@@ -1,0 +1,27 @@
+/* MULTISELECTBOX */
+.multiSelectBox {
+	width: 100%;
+	display: table;
+}
+
+.multiSelectBox th {
+	padding: 0.25em;
+}
+
+.multiSelectBox td {
+	padding: 0.25em;
+}
+
+.multiSelectBoxItem {
+	display: table-row;
+}
+
+.multiSelectBox .hiddenItem {
+	width: 100%;
+	display: none;
+}
+
+.multiSelectBox .selectedItem {
+	background-color: #4B87A8;
+	color: #FFFFFF;
+}

@@ -1,0 +1,248 @@
+/* BACKLOG PAGE */
+#board-container {
+}
+
+.row {
+	margin-top: 1%;
+	margin-bottom: 0%;
+	flex-wrap: nowrap;
+}
+
+.add-btn {
+	font-size:24px;
+	margin-right:5px;
+	pointer-events: auto;
+}
+
+.list-btn {
+	font-size: 10pt !important;
+	padding: 1% !important;
+	float:right;
+	margin-top: 10px !important;
+	margin-bottom: 10px !important;
+	margin-left: 15px;
+	margin-right: 0px;
+}
+
+.radioBtnOpts > th {
+	min-width: 100px;
+	padding-right: 2%;
+}
+
+#task-history > li {
+	font-size:12pt !important;
+}
+
+#task-work-list > ul > li {
+	font-size:12pt !important;
+}
+
+/* STATUS COLUMNS */
+.column-header {
+	margin-bottom: 0%;
+	padding-left: 0%;
+	padding-right: 0%;
+	text-align: center;
+	pointer-events: none;
+}
+ 
+.column-body  {
+	overflow-x: scroll;
+	overflow-y: scroll;
+	padding: 0%;
+	margin: 0%;
+	min-height: 75px;
+}
+
+.columnDiv {
+	float: left;
+}
+
+.task-column-container {
+	overflow: hidden; 
+	margin-left: 0%;
+	margin-right: 0%;
+	padding: 0.5%;
+	min-width:25%;
+}
+
+.product-board-container {
+	overflow-y: scroll; 
+	margin-left: 1%;
+	margin-right: 1%;
+	padding: 0%;
+	width: 100%;
+}
+
+/* TASK CARDS */
+.task-card {
+	overflow-x: visible;
+	width:96%;
+	margin: 2%;
+	margin-top:1%;
+	margin-bottom:1%;
+	padding: 1%;
+	padding-left: 3%;
+	padding-right: 3%;
+	float: left;
+	font-size: 14px;
+	text-align: left;
+	background: #DE5B49;
+}
+
+div[class='card text-white task-card Research'] {
+	background: #F0CA4D !important;
+}
+div[class='card text-white task-card Feature Implementation'] {
+	background: #46B29D !important;
+}
+div[class='card text-white task-card Unit Test'] {
+	background: #4B87A8 !important;
+}
+div[class='card text-white task-card Bug Fix'] {
+	background: #324D5C !important;
+}
+div[class='card text-white task-card Refactor'] {
+	background: #E37B40 !important;
+}
+div[class='card text-white task-card Other'] {
+	background: #BF7B7F !important;
+}
+
+.product-task-card {
+	width:21%;
+	padding: 1%;
+	padding-left: 1%;
+	padding-right: 1%;
+	overflow-x: visible;
+	margin: 2%;
+	margin-top:1%;
+	margin-bottom:1%;
+	float: left;
+	font-size: 14px;
+	text-align: left;
+	background: #DE5B49;
+}
+
+div[class='card text-white product-task-card Research'] {
+	background: #F0CA4D !important;
+}
+div[class='card text-white product-task-card Feature Implementation'] {
+	background: #46B29D !important;
+}
+div[class='card text-white product-task-card Unit Test'] {
+	background: #4B87A8 !important;
+}
+div[class='card text-white product-task-card Bug Fix'] {
+	background: #324D5C !important;
+}
+div[class='card text-white product-task-card Refactor'] {
+	background: #E37B40 !important;
+}
+div[class='card text-white product-task-card Other'] {
+	background: #BF7B7F !important;
+}
+
+.assigned-icon {
+	margin-right:5px;
+}
+
+.task-card-input {
+	padding: 0%;
+	padding-left: 3%;
+	padding-right: 3%;
+	margin: 0%;
+	font-size: 13px;
+	text-align: left;
+}
+
+#note-list {
+	margin-top:3%;
+}
+
+.list-subtext {
+	color:#BF7B7F;
+	font-size:11px;
+}
+
+#popupErrorText {
+	padding: 1%;
+	padding-right: 3%;
+	white-space: pre-line;
+}
+
+#work-form-container {
+	margin-bottom: 3%;
+}
+
+#repositoryFileTree {
+	margin-left: 0;
+	padding-left: 0;
+}
+
+/* from w3schools */
+ul, #fileTreeList {
+	list-style-type: none;
+	margin-left: 2%;
+	padding-left: 2%;
+}
+
+/* Remove margins and padding from the parent ul */
+#fileTreeList {
+	margin: 0;
+	padding: 0;
+}
+
+/* Style the caret/arrow */
+.caret {
+	cursor: pointer;
+	user-select: none; /* Prevent text selection */
+}
+
+/* Create the caret/arrow with a unicode, and style it */
+.caret::before {
+	content: "\25B6";
+	color: black;
+	display: inline-block;
+	margin-right: 6px;
+}
+
+/* Rotate the caret/arrow icon when clicked on (using JavaScript) */
+.caret-down::before {
+	transform: rotate(90deg);
+}
+
+/* Hide the nested list */
+.nested {
+	display: none;
+}
+
+/* Show the nested list when the user clicks on the caret/arrow (with JavaScript) */
+.active {
+	display: block;
+
+}
+
+.small-text {
+	font-size: 12px;
+}
+
+.delete-color {
+	color: #DE5B49;
+}
+
+.submit-color {
+	color: #46B29D;
+}
+
+.other-color {
+	color: #324D5C;
+}
+
+#impact-form-container {
+	margin-top: 2%;
+}
+
+#submit-impact-btn {
+	margin-top: 2%;
+}

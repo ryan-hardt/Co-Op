@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE hibernate-configuration SYSTEM 
+"http://www.hibernate.org/dtd/hibernate-configuration-3.0.dtd">
+
+
+<hibernate-configuration>
+	<session-factory>
+		<property name="jasypt.encryptor.password">UPDATE</property>
+
+		<!--  Derby -->
+		<property name="hibernate.show_sql">true</property>
+		<property name="hibernate.hbm2ddl.auto">update</property>
+	   	<property name="hibernate.connection.url">jdbc:derby:coopDB;create=true</property>
+	   	<property name="hibernate.connection.driver_class">org.apache.derby.jdbc.EmbeddedDriver</property>
+	   	<property name="hibernate.dialect">org.hibernate.dialect.DerbyTenSevenDialect</property>
+	   	<property name="hibernate.id.new_generator_mappings">false</property>
+	   	<property name="hibernate.connection.username"></property>
+	   	<property name="hibernate.connection.password"></property>
+		<property name="hibernate.enable_lazy_load_no_trans">true</property>
+
+		<!-- MySQL -->
+		<!--
+		<property name="hibernate.show_sql">false</property>
+		<property name="hibernate.hbm2ddl.auto">update</property>
+	   	<property name="hibernate.connection.url">UPDATE</property>
+	   	<property name="hibernate.connection.driver_class">com.mysql.jdbc.Driver</property>
+	   	<property name="hibernate.dialect">org.hibernate.dialect.MySQL8Dialect</property>
+	   	<property name="hibernate.id.new_generator_mappings">false</property>
+	   	<property name="hibernate.connection.username">UPDATE</property>
+	   	<property name="hibernate.connection.password">UPDATE</property>
+		<property name="hibernate.enable_lazy_load_no_trans">true</property>
+		-->
+		
+		<!-- Model mappings -->
+		<mapping class="coop.model.Cycle" />
+		<mapping class="coop.model.Project" />
+		<mapping class="coop.model.Board" />
+		<mapping class="coop.model.User" />
+		<mapping class="coop.model.Task" />
+		<mapping class="coop.model.TaskHistory" />
+		<mapping class="coop.model.TaskChange" />
+		<mapping class="coop.model.Work" />
+		<mapping class="coop.model.Note" />
+		<mapping class="coop.model.ImpactedProjectFile" />
+		<mapping class="coop.model.repository.RepositoryHost" />
+		<mapping class="coop.model.repository.RepositoryProject" />
+		<mapping class="coop.model.repository.GitLabRepositoryHost" />
+		<mapping class="coop.model.repository.GitHubRepositoryHost" />
+		<mapping class="coop.model.SlackWorkspace" />
+	</session-factory>
+</hibernate-configuration>
