@@ -1,3 +1,6 @@
+#don't commit changes to hibernate.cfg.xml
+src/main/resources/hibernate.cfg.xml
+
 #don't commit changes to build directories
 /build/
 /target/
