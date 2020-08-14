@@ -1,19 +1,16 @@
 package coop.dao;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import javax.persistence.criteria.CriteriaQuery;
-
+import coop.model.Project;
 import coop.model.SlackWorkspace;
 import coop.model.User;
 import coop.model.repository.RepositoryProject;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import coop.model.Project;
 import org.hibernate.query.Query;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ProjectDao extends HibernateDao {
 
@@ -107,7 +104,7 @@ public class ProjectDao extends HibernateDao {
 			Query<Project> query = session.createQuery("FROM Project WHERE slackWorkspace = :slackWorkspace");
 			query.setParameter("slackWorkspace", slackWorkspace);
 			List<Project> projectsWithWorkspace = query.list();
-			if(projectsWithWorkspace == null || projectsWithWorkspace.isEmpty()) {
+			if(projectsWithWorkspace != null && !projectsWithWorkspace.isEmpty()) {
 				session.delete(slackWorkspace);
 			}
 			deleteProjectTransaction.commit();
