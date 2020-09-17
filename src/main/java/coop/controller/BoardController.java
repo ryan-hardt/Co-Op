@@ -920,7 +920,8 @@ public class BoardController {
 		RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
 
 		List<ImpactedProjectFile> impactedProjectFiles = task.getImpactedFiles();
-		List<String> commitIds = task.getRepositoryCommits();
+		//make copy of task's repository commits to modify when determining impacted files match
+		List<String> selectedCommitIds = new ArrayList(task.getRepositoryCommits());
 		List<String> impactedProjectFilePaths = new ArrayList<String>();
 		List<String> impactedProjectFilePathsCopy = new ArrayList<String>();
 
@@ -930,9 +931,12 @@ public class BoardController {
 			impactedProjectFilePathsCopy.add(impactedProjectFile.getPath());
 		}
 
+		//don't evaluate reverted commits when comparing changes with impacted files
+		handleReverts(selectedCommitIds, repositoryProject, task);
+
 		//all files modified/deleted in an identified commit must be present in impactedFiles
 		//for each identified commit
-		for(String commitId: commitIds) {
+		for(String commitId: selectedCommitIds) {
 			List<String> modifiedFilesFromRepository = repositoryHost.retrieveModifiedFilesFromRepositoryCommit(repositoryProject, commitId);
 			//for each modified/deleted file in a commit
 			for (String modifiedRepositoryFile : modifiedFilesFromRepository) {
@@ -948,5 +952,48 @@ public class BoardController {
 
 		//all impactedFiles must be present in some commit
 		return impactedProjectFilePathsCopy.isEmpty();
+	}
+
+	private RepositoryProjectBranchCommit getSelectedCommit(String selectedCommitId, List<RepositoryProjectBranchCommit> repositoryProjectBranchCommits) {
+		for(RepositoryProjectBranchCommit commit: repositoryProjectBranchCommits) {
+			if(commit.getCommitId().equals(selectedCommitId)) {
+				return commit;
+			}
+		}
+		return null;
+	}
+
+	private void removeRevertedCommitId(String revertedCommitId, List<String> selectedCommitIds) {
+		String selectedCommitId;
+		for(Iterator<String> selectedCommitIdItr = selectedCommitIds.iterator(); selectedCommitIdItr.hasNext();) {
+			selectedCommitId=selectedCommitIdItr.next();
+			if(revertedCommitId.startsWith(selectedCommitId)) {
+				selectedCommitIdItr.remove();
+				break;
+			}
+		}
+	}
+
+	private void handleReverts(List<String> selectedCommitIds, RepositoryProject repositoryProject, Task task) {
+		RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
+
+		//loop through SELECTED commits and if one of those is a revert, then remove it and referenced commit
+		List<RepositoryProjectBranchCommit> allBranchCommits = repositoryHost.retrieveProjectBranchCommitsFromRepository(repositoryProject, task.getRepositoryProjectBranch());
+		List<String> revertedCommitIds = new ArrayList<>();
+		RepositoryProjectBranchCommit selectedCommit;
+
+		for(Iterator<String> commitIdItr = selectedCommitIds.iterator(); commitIdItr.hasNext();) {
+			selectedCommit = getSelectedCommit(commitIdItr.next(), allBranchCommits);
+			if(selectedCommit.isRevert()) {
+				//remove commit from list to compare with impacted files
+				commitIdItr.remove();
+				//add reverted commit id to list for removal (avoid ConcurrentModificationException)
+				revertedCommitIds.add(selectedCommit.getRevertedCommitId());
+			}
+		}
+		//remove all reverted commitIds
+		for(String revertedCommitId: revertedCommitIds) {
+			removeRevertedCommitId(revertedCommitId, selectedCommitIds);
+		}
 	}
 }

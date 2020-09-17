@@ -38,4 +38,17 @@ public class RepositoryProjectBranchCommit {
     public void setCommitterName(String committerName) {
         this.committerName = committerName;
     }
+
+    public boolean isRevert() {
+        return this.commitMessage.contains("reverts commit");
+    }
+
+    public String getRevertedCommitId() {
+        String revertedCommitId = null;
+        int revertedCommitIdInd = this.commitMessage.indexOf("reverts commit");
+        if(revertedCommitIdInd != -1) {
+            revertedCommitId = this.commitMessage.substring(revertedCommitIdInd+15);
+        }
+        return revertedCommitId;
+    }
 }
