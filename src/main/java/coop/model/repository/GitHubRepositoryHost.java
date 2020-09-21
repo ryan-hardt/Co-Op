@@ -165,7 +165,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
             for(RepositoryContents repositoryContent : contentsService.getContents(gitHubRepository, path)) {
                 if(RepositoryContents.TYPE_DIR.equals(repositoryContent.getType())) {
                     dirKey = projectName + "/" + repositoryContent.getPath();
-                    path += repositoryContent.getPath();
+                    path = repositoryContent.getPath();
                     files.add(dirKey);
                     processGitHubRepositoryTree(projectFiles, projectName, dirKey, gitHubRepository, path);
                 } else if(RepositoryContents.TYPE_FILE.equals(repositoryContent.getType())) {
