@@ -95,7 +95,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
         establishConnection();
         try {
             Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
-            for(RepositoryCommit repositoryCommit: commitService.getCommits(gitHubRepository)) {
+            for(RepositoryCommit repositoryCommit: commitService.getCommits(gitHubRepository, branchName, null)) {
                 String commitId = repositoryCommit.getSha();
                 String commitMessage = repositoryCommit.getCommit().getMessage();
                 String committerName = repositoryCommit.getCommitter().getName();

@@ -566,7 +566,7 @@ function addImpactItem(impactedProjectFileId, path) {
 		impactedFileHTML += "<span class='delete-color'><i id='delete-impact-item' class='fa fa-window-close fa-1' onclick='deleteImpactItem("+impactedProjectFileId+", \""+path+"\")'></i> </span>";
 	}
 	impactedFileHTML += "<span class='other-color'><i id='view-impact-item-users' class='fa fa-users fa-1' onclick='toggleImpactItemUsers("+impactedProjectFileId+")'></i> </span>";
-	impactedFileHTML += "<span class='small-text'>"+path+"</span>";
+	impactedFileHTML += "<span class='small-text'>"+path.substring(path.lastIndexOf('/')+1)+"</span>";
 	impactedFileHTML += "</li>";
 	$('#task-impact-list > ul').append(impactedFileHTML);
 }
