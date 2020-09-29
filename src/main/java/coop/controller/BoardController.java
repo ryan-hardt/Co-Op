@@ -984,7 +984,7 @@ public class BoardController {
 
 		for(Iterator<String> commitIdItr = selectedCommitIds.iterator(); commitIdItr.hasNext();) {
 			selectedCommit = getSelectedCommit(commitIdItr.next(), allBranchCommits);
-			if(selectedCommit.isRevert()) {
+			if(selectedCommit != null && selectedCommit.isRevert()) {
 				//remove commit from list to compare with impacted files
 				commitIdItr.remove();
 				//add reverted commit id to list for removal (avoid ConcurrentModificationException)

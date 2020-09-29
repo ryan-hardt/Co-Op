@@ -50,7 +50,7 @@ public class ImpactedProjectFile {
 
     @Override
     public String toString() {
-        return path;
+        return path.substring(path.lastIndexOf('/')+1);
     }
 
     @Override
