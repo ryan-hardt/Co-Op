@@ -50,12 +50,20 @@ public class GitLabRepositoryHost extends RepositoryHost {
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
         HttpEntity<?> entity = new HttpEntity<>(headers);
         try {
-            String url = repositoryHostUrl + "/api/v4/projects?simple=true&order_by=created_at&sort=asc&per_page=100&search="+namespace;
-            ResponseEntity<GitLabProject[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitLabProject[].class);
+            String groupsUrl = repositoryHostUrl + "/api/v4/groups?search="+namespace;
+            ResponseEntity<GitLabGroup[]> groupsResponse = restTemplate.exchange(groupsUrl, HttpMethod.GET, entity, GitLabGroup[].class);
 
-            for(GitLabProject gitLabProject : response.getBody()) {
-                if(gitLabProject.getName_with_namespace() != null && gitLabProject.getName_with_namespace().startsWith(namespace)) {
-                    gitLabProjects.add(new RepositoryProject(gitLabProject.getName(), gitLabProject.getWeb_url(), this));
+            for(GitLabGroup gitLabGroup : groupsResponse.getBody()) {
+                if(gitLabGroup.getPath() != null && gitLabGroup.getPath().startsWith(namespace)) {
+                    String groupId = gitLabGroup.getId();
+                    String url = repositoryHostUrl + "/api/v4/groups/"+groupId+"/projects?simple=true&order_by=created_at&sort=asc&per_page=100";
+                    ResponseEntity<GitLabProject[]> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitLabProject[].class);
+
+                    for(GitLabProject gitLabProject : response.getBody()) {
+                        if(gitLabProject.getName_with_namespace() != null && gitLabProject.getName_with_namespace().startsWith(namespace)) {
+                            gitLabProjects.add(new RepositoryProject(gitLabProject.getName(), gitLabProject.getWeb_url(), this));
+                        }
+                    }
                 }
             }
         } catch(Exception e) {
@@ -179,6 +187,19 @@ public class GitLabRepositoryHost extends RepositoryHost {
             }
         } catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    public static class GitLabGroup {
+        private String id;
+        private String path;
+
+        public String getId() {
+            return this.id;
+        }
+
+        public String getPath() {
+            return this.path;
         }
     }
 
