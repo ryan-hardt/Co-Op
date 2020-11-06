@@ -4,7 +4,7 @@ let currentHoveredCard = null;
 let isUserAssignedToTask = false;
 let newTaskField = null;
 let isBoardActive = false;
-let taskStatuses = ["Not Started", "In Progress", "Needs Help", "Completed"];
+let taskStatuses = ["Not Started", "In Progress", "Needs Help", "Review", "Completed"];
 let taskTags = ["Research", "Feature Implementation", "Unit Test", "Bug Fix", "Refactor", "Other"];
 let hoverCounter = 0;
 

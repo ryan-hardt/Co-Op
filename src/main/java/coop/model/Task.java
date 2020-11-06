@@ -34,12 +34,12 @@ import java.util.ArrayList;
 	  public static final String NOT_STARTED = "Not Started";
 	  public static final String IN_PROGRESS = "In Progress";
 	  public static final String NEEDS_HELP = "Needs Help";
-	  //public static final String READY_FOR_REVIEW = "Ready for Review";
+	  public static final String REVIEW = "Review";
 	  //public static final String READY_FOR_COMMIT = "Ready for Commit";
 	  public static final String COMPLETED = "Completed";
 	  //These lists are repeated in board.js
 	  public static final String[] TASK_TAGS = {RESEARCH, FEATURE, UNIT_TEST, BUG_FIX, REFACTOR, OTHER};
-	  public static final String[] TASK_STATUSES = {NOT_STARTED, IN_PROGRESS, NEEDS_HELP, COMPLETED};
+	  public static final String[] TASK_STATUSES = {NOT_STARTED, IN_PROGRESS, NEEDS_HELP, REVIEW, COMPLETED};
 	  
 	  @Id
 	  @GeneratedValue(strategy = GenerationType.AUTO)
