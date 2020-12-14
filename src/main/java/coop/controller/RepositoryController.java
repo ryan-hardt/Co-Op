@@ -52,10 +52,10 @@ public class RepositoryController {
 
         if(user != null) {
             String type = request.getParameter("repositoryHostType");
-            String name = request.getParameter("repositoryHostName");
-            String url = request.getParameter("repositoryHostUrl");
-            String accessToken = request.getParameter("repositoryHostAccessToken");
-            String namespace = request.getParameter("repositoryHostNamespace");
+            String name = CoOpUtil.sanitizeText(request.getParameter("repositoryHostName"));
+            String url = CoOpUtil.sanitizeText(request.getParameter("repositoryHostUrl"));
+            String accessToken = CoOpUtil.sanitizeText(request.getParameter("repositoryHostAccessToken"));
+            String namespace = CoOpUtil.sanitizeText(request.getParameter("repositoryHostNamespace"));
 
             if(type == null || name == null || url == null || accessToken == null) {
                 redirectAttributes.addFlashAttribute("error", "Please enter all required fields");

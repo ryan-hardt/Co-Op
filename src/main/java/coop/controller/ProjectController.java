@@ -105,7 +105,7 @@ public class ProjectController {
 	public String addProjectSubmit(ModelMap model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		User user = (User)request.getSession().getAttribute("user");
 		if(user != null) {
-			String name = request.getParameter("projName");
+			String name = CoOpUtil.sanitizeText(request.getParameter("projName"));
 			String repositoryHostId = request.getParameter("repositoryHostId");
 			String repositoryProjectUrl = request.getParameter("repositoryProjectUrl");
 			String[] userIds = request.getParameter("users").split(",");
@@ -185,7 +185,7 @@ public class ProjectController {
 	public String updateProjectSubmit(@PathVariable Integer id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		User user = (User)request.getSession().getAttribute("user");
 		if(user != null) {
-			String name = request.getParameter("projName");
+			String name = CoOpUtil.sanitizeText(request.getParameter("projName"));
 			String repositoryHostId = request.getParameter("repositoryHostId");
 			String repositoryProjectUrl = request.getParameter("repositoryProjectUrl");
 			String[] userIds = request.getParameter("users").split(",");

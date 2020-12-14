@@ -322,7 +322,7 @@ public class BoardController {
 		
 		//update task description (if changed)
 		String currentDescription = task.getDescription();
-		String newDescription = allRequestParams.get("description");
+		String newDescription = CoOpUtil.sanitizeText(allRequestParams.get("description"));
 	    if(newDescription != null && !newDescription.equals(currentDescription)) {
 	    	foundChange = true;
 	    	task.setDescription(newDescription);
@@ -701,7 +701,7 @@ public class BoardController {
 		}
 				
 		Task temp = new Task();
-		temp.setDescription(description);
+		temp.setDescription(CoOpUtil.sanitizeText(description));
 		temp.setStatus(Task.NOT_STARTED);
 		temp.addBoard(board);
 		board.addTask(temp);
@@ -717,6 +717,7 @@ public class BoardController {
 		TaskDao tdao = new TaskDao();
 		Task t = tdao.getTask(id);
 		User u = UserDao.getUserFromSession(request);
+		text = CoOpUtil.sanitizeText(text);
 		ObjectMapper mapper = new ObjectMapper();
 		String result = "";
 		
@@ -753,7 +754,7 @@ public class BoardController {
 	@RequestMapping(value = "/board/addWork/{taskId}", method = RequestMethod.POST, produces = "application/json")
 	public String addWork(HttpServletRequest request,  
 			@PathVariable("taskId") String taskIdStr,
-			@RequestParam(value = "description", required = false) String description, 
+			@RequestParam(value = "description", required = false) String description,
 			@RequestParam(value = "minutes", required = true) String minutesStr) {
 		
 		int taskId = Integer.parseInt(taskIdStr);
@@ -775,7 +776,7 @@ public class BoardController {
 			return result;
 		}
 				
-		Work w = new Work(t, u, description, minutes, new Date());
+		Work w = new Work(t, u, CoOpUtil.sanitizeText(description), minutes, new Date());
 		t.addWork(w);
 		wdao.insertWork(w);
 		

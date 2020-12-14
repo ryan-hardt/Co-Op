@@ -76,15 +76,15 @@ public class UserController {
 	@RequestMapping(value = "/user/add", method = RequestMethod.POST)
 	public String handleAddUser(ModelMap model, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 	  User user = new User();
-      user.setUsername(request.getParameter("username"));
+      user.setUsername(CoOpUtil.sanitizeText(request.getParameter("username")));
       if (userDao.getUser(user.getUsername()) != null) {
           redirectAttributes.addFlashAttribute("error", "That username is taken, please choose another");
           return "redirect:/user/add";
       } else {
-    	  user.setFirstName(request.getParameter("firstName"));
-    	  user.setLastName(request.getParameter("lastName"));
+    	  user.setFirstName(CoOpUtil.sanitizeText(request.getParameter("firstName")));
+    	  user.setLastName(CoOpUtil.sanitizeText(request.getParameter("lastName")));
           user.setSalt(BCrypt.gensalt(12));
-          user.setHash(UserDao.hashPassword(request.getParameter("password"), user.getSalt()));
+          user.setHash(UserDao.hashPassword(CoOpUtil.sanitizeText(request.getParameter("password")), user.getSalt()));
           user.setIsActive(1);
           userDao.insertUser(user);
 
@@ -123,11 +123,13 @@ public class UserController {
 		}
 		User user = userDao.getUser(Integer.valueOf(userId));
 
-		user.setUsername(request.getParameter("username"));
-		user.setFirstName(request.getParameter("firstName"));
-		user.setLastName(request.getParameter("lastName"));
-		if (request.getParameter("password") != null && request.getParameter("password").length() > 0) {
-			user.setHash(UserDao.hashPassword(request.getParameter("password"), user.getSalt()));
+		user.setUsername(CoOpUtil.sanitizeText(request.getParameter("username")));
+		user.setFirstName(CoOpUtil.sanitizeText(request.getParameter("firstName")));
+		user.setLastName(CoOpUtil.sanitizeText(request.getParameter("lastName")));
+
+		String password = CoOpUtil.sanitizeText(request.getParameter("password"));
+		if (password != null && password.length() > 0) {
+			user.setHash(UserDao.hashPassword(password, user.getSalt()));
 		}
 
 		redirectAttributes.addFlashAttribute("success", "User updated");
@@ -144,8 +146,8 @@ public class UserController {
 	@RequestMapping(value = "/login", method = RequestMethod.POST)
 	public String handleLogin(HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		String dest = "";
-		String uname = request.getParameter("username").toString();
-		String pwd = request.getParameter("password").toString();
+		String uname = CoOpUtil.sanitizeText(request.getParameter("username"));
+		String pwd = CoOpUtil.sanitizeText(request.getParameter("password"));
 		User u = userDao.getUser(uname);
 
 		if(u == null) {
@@ -169,14 +171,14 @@ public class UserController {
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
-		} else if (state == userDao.getUser(new Integer(uid)).getIsActive()) {
+		} else if (state == userDao.getUser(uid).getIsActive()) {
 			try {
 				response.sendError(400, "Bad request");
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
 		} else {
-			User u = userDao.getUser(new Integer(uid));
+			User u = userDao.getUser(uid);
 			if (state == 1) {
 				u.activate();
 			} else if (state == 0) {
@@ -190,10 +192,11 @@ public class UserController {
 	@RequestMapping(value = "/user/checkduplicate", produces = "application/json", method = RequestMethod.POST)
 	public void checkDuplicate(HttpServletRequest request, HttpServletResponse response) {
 		User sessionUser = (User) request.getSession().getAttribute("user");
-		if (sessionUser != null && sessionUser.getUsername().equals(request.getParameter("uname"))) {
+		String username = CoOpUtil.sanitizeText(request.getParameter("uname"));
+		if (sessionUser != null && sessionUser.getUsername().equals(username)) {
 			response.setStatus(200);
 		} else {
-			User u = userDao.getUser(request.getParameter("uname"));
+			User u = userDao.getUser(username);
 			if (u == null) {
 				response.setStatus(200);
 			} else {

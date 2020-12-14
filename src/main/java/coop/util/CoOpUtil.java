@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletRequest;
 import coop.dao.UserDao;
 import coop.model.Cycle;
 import coop.model.User;
+import org.owasp.html.PolicyFactory;
+import org.owasp.html.Sanitizers;
 
 public class CoOpUtil {
 
@@ -36,4 +38,10 @@ public class CoOpUtil {
 	public static String toPercentage(double n, int digits){
 	    return String.format("%."+digits+"f",n*100)+"%";
 	}
+
+	public static String sanitizeText(String text) {
+		PolicyFactory policy = Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+		return policy.sanitize(text);
+	}
 }
+
