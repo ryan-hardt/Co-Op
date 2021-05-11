@@ -198,7 +198,7 @@
 				</div>
 			</div>
 		</div>
-		<script src='<c:url value="/resources/js/chart-js/Chart.bundle.js" />'></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.0/chart.min.js" integrity="sha512-VMsZqo0ar06BMtg0tPsdgRADvl0kDHpTbugCBBrL55KmucH6hP9zWdLIWY//OTfMnzz6xWQRxQqsUFefwHuHyg==" crossorigin="anonymous"></script>
 		<script src="<c:url value='/resources/js/work.js'/>"></script>
 		<script>initializeWorkStats('role', 'project', ${project.getId()})</script>
 	</jsp:body>

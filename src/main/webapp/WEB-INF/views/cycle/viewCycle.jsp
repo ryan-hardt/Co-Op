@@ -11,8 +11,6 @@
 		<button type="button" class="btn cancel-btn" onclick="window.location='/coop/project/${cycle.getProject().getId()}';">Back to Project</button>
 	</jsp:attribute>
 	<jsp:body>
-		<script src="<c:url value='/resources/js/chart-js/Chart.bundle.js'/>"></script>
-		<script src="<c:url value='/resources/js/work.js'/>"></script>
 		<div class="row" style="margin-top:2%;">
 			<div class="col-sm-3">
 				<div class="card" style="margin-top:0%">
@@ -107,7 +105,8 @@
             </div>
         </div>
         </c:if>
-        <script src='<c:url value="/resources/js/chart-js/Chart.bundle.js" />'></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.0/chart.min.js" integrity="sha512-VMsZqo0ar06BMtg0tPsdgRADvl0kDHpTbugCBBrL55KmucH6hP9zWdLIWY//OTfMnzz6xWQRxQqsUFefwHuHyg==" crossorigin="anonymous"></script>
+		<script src="<c:url value='/resources/js/work.js'/>"></script>
 		<script>initializeCycleChart(${cycle.getId()}, ${cycle.getStartDate().getTime()}, ${cycle.getEndDate().getTime()})</script>
 		<script>initializeWorkStats('role', 'cycle', ${cycle.getId()})</script>
 	</jsp:body>
