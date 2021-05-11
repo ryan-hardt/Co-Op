@@ -19,7 +19,7 @@
 		<button type="button" class="btn cancel-btn" onclick="window.location='/coop/project/${projectId}';">Back to Project</button>
 	</jsp:attribute>
 	<jsp:body>
-	<link rel="stylesheet" href='<c:url value="/resources/jquery-ui/jquery-ui.min.css"/>' type="text/css" />
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" />
 	<link rel="stylesheet" href='<c:url value="/resources/css/board.css"/>' type="text/css"/>
 	<link rel="stylesheet" href='<c:url value="/resources/css/multiSelectBox.css"/>' type="text/css"/>
 	
@@ -257,8 +257,7 @@
 		</div>
      </div>
 	<!-- multiSelectBox.js should be referenced before page js -->
-	<script src="<c:url value='/resources/jquery-ui/jquery-ui.min.js'/>"></script>
-	<script src="<c:url value='/resources/js/multiSelectBox.js'/>"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>	<script src="<c:url value='/resources/js/multiSelectBox.js'/>"></script>
 	<script src='<c:url value="/resources/js/board.js"/>'></script>
 	<script>generateContent(${board.getBoardId()}, ${board.getCycle()!=null}, ${board.isActive()})</script>
 	</jsp:body>
