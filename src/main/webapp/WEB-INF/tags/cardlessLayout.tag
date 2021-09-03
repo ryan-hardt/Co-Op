@@ -29,7 +29,7 @@
 </head>
 <body class="fixed-nav bg-dark" id="page-top">
 	<c:import url="/WEB-INF/views/template/navigationFull.jsp" />
-	<div class="content-wrapper cardless-content tile-background">
+	<div class="content-wrapper tile-background">
         <div id="success" class="alert alert-success" <c:if test="${empty success}">style="display:none"</c:if>>
             ${success}
         </div>

@@ -18,7 +18,7 @@
 			</div>
 			<div class="form-group" style="margin: 1%">
 				<label for="password">Password</label> <input type="password" class="form-control" id="password" name="password" placeholder="Password">
-			</div>	
+			</div>
 			<div class="form-group" style="margin: 1%">
 				<label for="verifyPassword">Verify Password</label> <input type="password" class="form-control" id="verifyPassword" name="verifyPassword" placeholder="Re-Enter Password">
 			</div>

@@ -27,8 +27,8 @@
 </head>
 <body class="fixed-nav bg-dark" id="page-top">
 	<c:import url="/WEB-INF/views/template/navigationFull.jsp" />
-	<div class="content-wrapper tile-background" style="padding-top: 0px; min-height: calc(100vh - 56px); height:100%;">
-		<div class="card w3-rest" style="margin:1%; margin-top:2%; height: 97%;">
+	<div class="content-wrapper tile-background">
+		<div class="card">
 			<div class="card-header" style="text-align: left; font-size: large; font-weight: bold; margin-bottom: 0px; padding: 10px; padding-left: 20px">
 				${title}
 			</div>
@@ -52,5 +52,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-easing/1.4.1/jquery.easing.min.js" integrity="sha512-0QbL0ph8Tc8g5bLhfVzSqxe9GERORsKhIn1IrpxDAgUsbBGz/V7iSav2zzW325XGd1OMLdL4UiqRJj702IeqnQ==" crossorigin="anonymous"></script>
 
 	<!-- Custom scripts for all pages-->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin/5.1.1/js/sb-admin.min.js" integrity="sha512-RlJ1J/p+lyZbn+ABpSvCerrec/S3iaYPVdd6Lvnn9smqM2G0iEJuuTLuTORk1WriCdnnHADYuqw2b181ncN3sQ==" crossorigin="anonymous"></script></body>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/startbootstrap-sb-admin/5.1.1/js/sb-admin.min.js" integrity="sha512-RlJ1J/p+lyZbn+ABpSvCerrec/S3iaYPVdd6Lvnn9smqM2G0iEJuuTLuTORk1WriCdnnHADYuqw2b181ncN3sQ==" crossorigin="anonymous"></script>
+</body>
 </html>
