@@ -214,7 +214,6 @@ function createChart(dataMap, key, chartTitle, scope, id, colorList, assignedCol
 
 	let myLabels = generateWorkStatLabels(dataMap[key]);
 	let myData = generateWorkStatDatasets(dataMap[key]);
-
 	let myChart = new Chart(ctx, {
 		type: 'pie',
 		data: {
@@ -225,13 +224,19 @@ function createChart(dataMap, key, chartTitle, scope, id, colorList, assignedCol
 		    }]
 		},
 		options: {
-			title: {
-	            display: true,
-	            text: chartTitle
-	        },
-	        legend: {
-	        	position: 'left'
-	        }
+			plugins: {
+				title: {
+					display: true,
+					text: chartTitle,
+					font: {
+						size: 16,
+						style: 'bold'
+					}
+				},
+				legend: {
+					position: 'top'
+				}
+			}
 		}
 	});
 	return myChart;

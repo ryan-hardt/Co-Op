@@ -24,18 +24,10 @@
 
 	<!--  Custom styles for this site -->
 	<link rel="stylesheet" href='<c:url value="/resources/css/coop.css"/>' type="text/css" />
-	
-	<style>
-	.content-wrapper {
-		padding-top: 0px;
-		height: 100%;
-		min-height: calc(100vh - 56px);
-	}
-	</style>
 </head>
 <body class="fixed-nav bg-dark" id="page-top">
 	<c:import url="/WEB-INF/views/template/navigationFull.jsp" />
-	<div class="content-wrapper tile-background" style="padding-top: 0px; min-height: calc(100vh - 56px);">
+	<div class="content-wrapper tile-background" style="padding-top: 0px; min-height: calc(100vh - 56px); height:100%;">
 		<div class="card w3-rest" style="margin:1%; margin-top:2%; height: 97%;">
 			<div class="card-header" style="text-align: left; font-size: large; font-weight: bold; margin-bottom: 0px; padding: 10px; padding-left: 20px">
 				${title}

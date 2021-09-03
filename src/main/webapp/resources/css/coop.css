@@ -1,5 +1,9 @@
 /* top level containers */
 
+body {
+	padding-top: 56px;
+}
+
 .content-wrapper {
     margin-left: 0;
     padding-top: 0;
