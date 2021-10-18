@@ -130,7 +130,7 @@ $(function() {
 				method: "POST",
 				data: $("#taskDetailsUpdateForm").serialize(),
 				success: (data,status) => {
-					displaySuccess();
+					$('#taskModal').modal('hide');
 					refreshBoard();
 				},
 				error: () => {
@@ -717,7 +717,8 @@ function displayTaskUsers() {
 	$('#task-delete-btn').hide();
 	$('#taskFormErrors').hide();
 	$('#taskFormUpdated').hide();
-	
+
+
 	$("#task-users").show();
 	$("#task-users-btn").addClass("active-nav-btn");
 	$('#submit-task-users-btn').show();
@@ -1074,37 +1075,17 @@ function initCycleBoardCard(card) {
 			"class": "form-control col-xs-6 task-card-input"
 		});
 		jqCardTextInput[0].setAttribute("type", "text");
-		
+
 		/* allow return key to finish editing */
 		jqCardTextInput.keyup(function(e) {
 			if(e.which == 13) {
-				jqCardTextInput.trigger( "blur" );
+				processNewCardText(e);
 			}
 		});
 		
 		/* when description text field is exited */
 		jqCardTextInput[0].onblur = (ev) => {
-			//if description is present
-			if(ev.target.value != '') {
-				ev.target.setAttribute("draggable", "true");
-				//create task
-				const url = "addTask/" + board.id + "?description=" + ev.target.value;
-				jQuery.ajax(
-						url, {
-							async: false,
-							method: "POST",
-							success: (data, status) => {
-								refreshBoard();
-							},
-							error: (a, b, c) => {
-							}
-						});
-			}
-			//if no description is present
-			else {
-				//delete task card
-				ev.target.parentElement.remove();
-			}
+			processNewCardText(ev);
 		};
 		
 		jqCardDiv.append(jqCardTextInput[0]);
@@ -1112,6 +1093,30 @@ function initCycleBoardCard(card) {
 		card.div.setAttribute("draggable", "false");
 	}
 	return card;
+}
+
+function processNewCardText(ev) {
+	//if description is present
+	if(ev.target.value != '') {
+		ev.target.setAttribute("draggable", "true");
+		//create task
+		const url = "addTask/" + board.id + "?description=" + ev.target.value;
+		jQuery.ajax(
+			url, {
+				async: false,
+				method: "POST",
+				success: (data, status) => {
+					refreshBoard();
+				},
+				error: (a, b, c) => {
+				}
+			});
+	}
+	//if no description is present
+	else {
+		//delete task card
+		ev.target.parentElement.remove();
+	}
 }
 
 function updateTaskStatus(taskId, newStatus, newPriority) {

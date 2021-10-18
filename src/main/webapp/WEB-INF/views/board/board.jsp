@@ -164,7 +164,7 @@
 					<div id="task-users">
 						<form id="taskUsersUpdateForm" name="taskUsersUpdateForm" method="post" onsubmit="return false;">
 							<input type="hidden" id="isCycleBoard" name="isCycleBoard" value="${board.getCycle()!=null}">
-							<table class="form-control">
+							<table>
 								<tr class="radioBtnOpts">
 									<th></th>
 									<th>Owner</th>
