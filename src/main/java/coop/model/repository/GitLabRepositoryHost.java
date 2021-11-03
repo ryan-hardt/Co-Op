@@ -122,7 +122,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
         Map<String, Set<String>> projectFiles = new TreeMap<String, Set<String>>();
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/tree?ref="+getNamespacedPathEncoding(branchName);
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/tree?per_page=100&ref="+getNamespacedPathEncoding(branchName);
             processGitLabRepositoryTree(projectFiles, repositoryProject.getName(), repositoryProject.getName(), url);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -148,7 +148,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
         HttpHeaders headers = new HttpHeaders();
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
         HttpEntity<?> entity = new HttpEntity<>(headers);
-        HashSet<String> files = new HashSet<String>();
+        TreeSet<String> files = new TreeSet<String>();
         projectFiles.put(parentKey, files);
         String dirKey;
 
