@@ -6,9 +6,9 @@ import coop.model.repository.GitLabRepositoryHost;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
 import org.hibernate.cfg.Configuration;
-import org.junit.BeforeClass;
 
 import coop.util.SessionFactoryUtil;
+import org.junit.BeforeClass;
 
 public class DerbyTestSetup {
   @BeforeClass
