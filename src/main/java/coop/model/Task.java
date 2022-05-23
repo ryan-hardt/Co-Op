@@ -20,9 +20,9 @@ import java.util.ArrayList;
 	@Table(name = "task")
 	public class Task {
 	  //user types
-	  public static final String OWNER = "owner";
-	  public static final String HELPER = "helper";
-	  public static final String REVIEWER = "reviewer";
+	  public static final String OWNER = "Owner";
+	  public static final String HELPER = "Helper";
+	  public static final String REVIEWER = "Reviewer";
 	  //tags
 	  public static final String RESEARCH = "Research";
 	  public static final String FEATURE = "Feature Implementation";
@@ -40,7 +40,8 @@ import java.util.ArrayList;
 	  //These lists are repeated in board.js
 	  public static final String[] TASK_TAGS = {RESEARCH, FEATURE, UNIT_TEST, BUG_FIX, REFACTOR, OTHER};
 	  public static final String[] TASK_STATUSES = {NOT_STARTED, IN_PROGRESS, NEEDS_HELP, REVIEW, COMPLETED};
-	  
+	  public static final String[] TASK_ROLES = {OWNER, HELPER, REVIEWER};
+
 	  @Id
 	  @GeneratedValue(strategy = GenerationType.AUTO)
 	  @Column(name = "task_id", length = 20)

@@ -32,6 +32,9 @@ public class Cycle {
 	@Column(name = "end_date", length = 10)
 	private Date endDate;
 
+	@Column(name = "team_branch_name", length = 35)
+	private String cycleTeamBranchName;
+
 	@ManyToOne(optional = false)
 	@JoinColumn(name="project_id")
 	@Cascade(CascadeType.SAVE_UPDATE)
@@ -85,6 +88,14 @@ public class Cycle {
 	 */
 	public void setEndDate(Date endDate) {
 		this.endDate = endDate;
+	}
+
+	public String getCycleTeamBranchName() {
+		return cycleTeamBranchName;
+	}
+
+	public void setCycleTeamBranchName(String cycleTeamBranchName) {
+		this.cycleTeamBranchName = cycleTeamBranchName;
 	}
 
 	/**
@@ -175,6 +186,11 @@ public class Cycle {
 			if (other.endDate != null)
 				return false;
 		} else if (!endDate.equals(other.endDate))
+			return false;
+		if (cycleTeamBranchName == null) {
+			if (other.cycleTeamBranchName != null)
+				return false;
+		} else if (!cycleTeamBranchName.equals(other.cycleTeamBranchName))
 			return false;
 		if (project == null) {
 			if (other.project != null)

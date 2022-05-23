@@ -99,6 +99,9 @@ public abstract class RepositoryHost {
     public abstract List<RepositoryProject> retrieveProjectsFromRepository();
     public abstract List<String> retrieveProjectBranchesFromRepository(RepositoryProject repositoryProject);
     public abstract List<RepositoryProjectBranchCommit> retrieveProjectBranchCommitsFromRepository(RepositoryProject repositoryProject, String branchName);
+
+    public abstract RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId);
+
     public abstract Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName);
     public abstract List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId);
 

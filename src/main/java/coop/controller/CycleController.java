@@ -2,12 +2,15 @@ package coop.controller;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import coop.model.Cycle;
+import coop.model.*;
+import coop.model.repository.RepositoryHost;
+import coop.model.repository.RepositoryProject;
+import coop.model.repository.RepositoryProjectBranchCommit;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,8 +23,6 @@ import coop.dao.ProjectDao;
 import coop.dao.CycleDao;
 import coop.dao.UserDao;
 import coop.dao.StatsDao;
-import coop.model.Project;
-import coop.model.User;
 import coop.util.CoOpUtil;
 
 @Controller
@@ -40,7 +41,7 @@ public class CycleController {
 	 * GET the web page for viewing a Cycle, coop/cycle/{id}
 	 */
 	@RequestMapping(value = "/cycle/{id}", method = RequestMethod.GET)
-	public String viewCycleGet(@PathVariable("id") int id, ModelMap model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+	public String viewCycleGet(@PathVariable("id") int id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		Cycle cycle = cycleDao.getCycle(id);
 
 		// checks if user logged in or allowed to view cycle
@@ -50,17 +51,20 @@ public class CycleController {
 		}
 
 		if (cycle != null) {
-			StatsDao workDao = new StatsDao();
 			User u = UserDao.getUserFromSession(request);
-			double workPercentile = workDao.getCycleWorkPercentile(cycle, u);
-			double collaboratorPercentile = workDao.getCycleCollaboratorPercentile(cycle, u);
+			Map<User, UserStats> cycleStatsMap = StatsController.generateCycleStats(cycle);
+			Project project = cycle.getProject();
+			RepositoryProject repositoryProject = project.getRepositoryProject();
+			RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
+			String projectUrl = repositoryProject.getRepositoryProjectUrl();
 			
 			request.setAttribute("cycle", cycle);
 			request.setAttribute("cycleNumber", CoOpUtil.getCycleNumber(cycle));
 			request.setAttribute("startDateStr", displayDateFormat.format(cycle.getStartDate()));
 			request.setAttribute("endDateStr", displayDateFormat.format(cycle.getEndDate()));
-			request.setAttribute("workPercentile", CoOpUtil.toPercentage(workPercentile, 1));
-			request.setAttribute("collaboratorPercentile", CoOpUtil.toPercentage(collaboratorPercentile, 1));
+			request.setAttribute("cycleStatsMap", cycleStatsMap);
+			request.setAttribute("projectUrl", projectUrl);
+			request.setAttribute("repositoryProjectBranches", repositoryHost.retrieveProjectBranchesFromRepository(repositoryProject));
 
 			return "cycle/viewCycle";
 		} else {
@@ -73,7 +77,7 @@ public class CycleController {
 	 * GET the web page for updating a Cycle, coop/cycle/update/{id}
 	 */
 	@RequestMapping(value = "/cycle/update/{id}", method = RequestMethod.GET)
-	public String updateCycleGet(@PathVariable("id") int id, ModelMap model, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+	public String updateCycleGet(@PathVariable("id") int id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		Cycle cycle = cycleDao.getCycle(id);
 
 		if (cycle != null) {
@@ -99,7 +103,7 @@ public class CycleController {
 	 * GET the web page for adding a new cycle. coop/cycle/add
 	 */
 	@RequestMapping(value = "/cycle/add", method = RequestMethod.GET)
-	public String addCycleGet(@RequestParam(value = "project", required = false) Integer projectId, ModelMap model,HttpServletRequest request, RedirectAttributes redirectAttributes) {
+	public String addCycleGet(@RequestParam(value = "project", required = false) Integer projectId, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		ProjectDao projectDao = new ProjectDao();
 		Project project = projectDao.getProject(projectId);
 		
@@ -133,7 +137,7 @@ public class CycleController {
 	 * DELETE the cycle which is requesting a delete
 	 */
 	@RequestMapping(value = "/cycle/delete/{id}", method = RequestMethod.GET)
-	public String deleteCycle(@PathVariable("id") int id, RedirectAttributes redirectAttributes, ModelMap model, HttpServletRequest request) {
+	public String deleteCycle(@PathVariable("id") int id, RedirectAttributes redirectAttributes, HttpServletRequest request) {
 		Cycle cycle = cycleDao.getCycle(id);
 
 		if (cycle != null) {
@@ -200,7 +204,7 @@ public class CycleController {
 	 * POST to handle updating the given cycle from the update web page
 	 */
 	@RequestMapping(value = "/cycle/update/{id}", method = RequestMethod.POST)
-	public String updateCycle(@PathVariable("id") int id, HttpServletRequest request, HttpServletResponse response, RedirectAttributes redirectAttributes) {
+	public String updateCycle(@PathVariable("id") int id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 		Cycle cycle = cycleDao.getCycle(id);
 		
 		if(cycle != null) {
@@ -231,6 +235,35 @@ public class CycleController {
 				redirectAttributes.addFlashAttribute("error", "Your cycle could not be updated");
 				return "redirect:/user/"+UserDao.getUserIDFromSession(request);
 			}
+		} else {
+			redirectAttributes.addFlashAttribute("error", "An invalid cycle was requested");
+			return "redirect:/user/"+UserDao.getUserIDFromSession(request);
+		}
+	}
+
+	/**
+	 * POST to handle updating the given cycle from the update web page
+	 */
+	@RequestMapping(value = "/cycle/updateTeamBranch/{id}", method = RequestMethod.POST)
+	public String updateCycleTeamBranch(@PathVariable("id") int id, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+		Cycle cycle = cycleDao.getCycle(id);
+
+		if(cycle != null) {
+			// checks if user logged in or allowed to view cycle
+			String sessCheck = checkSession(redirectAttributes, request, cycle, cycle.getProject(), MODIFY_REQUEST);
+			if (sessCheck != null) {
+				return sessCheck;
+			}
+			String teamBranchName = request.getParameter("teamBranch");
+			if(teamBranchName != null && !teamBranchName.isEmpty()) {
+				cycle.setCycleTeamBranchName(teamBranchName);
+				if (cycleDao.updateCycle(cycle)) {
+					redirectAttributes.addFlashAttribute("success", "Your cycle team branch has been updated");
+				} else {
+					redirectAttributes.addFlashAttribute("error", "Your cycle team branch could not be updated");
+				}
+			}
+			return "redirect:/cycle/" + id;
 		} else {
 			redirectAttributes.addFlashAttribute("error", "An invalid cycle was requested");
 			return "redirect:/user/"+UserDao.getUserIDFromSession(request);

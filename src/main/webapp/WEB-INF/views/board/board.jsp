@@ -17,6 +17,18 @@
 			<button type="button" class="btn cancel-btn" onclick="window.location='/coop/cycle/${cycleId}';">Back to Cycle</button>
 		</c:if>
 		<button type="button" class="btn cancel-btn" onclick="window.location='/coop/project/${projectId}';">Back to Project</button>
+        <select id="userFilter" class="btn select-btn" onchange="filterTasks()">
+            <option value="all">All users</option>
+            <c:forEach items="${projectUsers}" var="projectUser">
+                <option value="${projectUser.id}">${projectUser.firstName} ${projectUser.lastName}</option>
+            </c:forEach>
+        </select>
+		<select id="roleFilter" class="btn select-btn" onchange="filterTasks()">
+			<option value="all">All roles</option>
+			<c:forEach items="${taskRoles}" var="taskRole">
+                <option value="${taskRole}">${taskRole}</option>
+            </c:forEach>
+		</select>
 	</jsp:attribute>
 	<jsp:body>
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.css" integrity="sha512-aOG0c6nPNzGk+5zjwyJaoRUgCdOrfSDhmMID2u4+OIslr0GjpLKo7Xm0Ao3xmpM4T8AmIouRkqwj1nrdVsLKEQ==" crossorigin="anonymous" />

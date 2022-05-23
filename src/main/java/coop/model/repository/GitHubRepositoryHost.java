@@ -99,13 +99,49 @@ public class GitHubRepositoryHost extends RepositoryHost {
                 String commitId = repositoryCommit.getSha();
                 String commitMessage = repositoryCommit.getCommit().getMessage();
                 String committerName = repositoryCommit.getCommitter().getName();
-                RepositoryProjectBranchCommit commit = new RepositoryProjectBranchCommit(commitId, commitMessage, committerName);
+                List<CommitStatus> commitStatuses = commitService.getStatuses(gitHubRepository, commitId);
+                Date commitDate = null;
+                for(CommitStatus commitStatus: commitStatuses) {
+                    if(commitStatus.getCreatedAt() != null) {
+                        //umm sure
+                        commitDate = commitStatus.getCreatedAt();
+                        break;
+                    }
+                }
+                CommitStats commitStats = repositoryCommit.getStats();
+                RepositoryProjectBranchCommit commit = new RepositoryProjectBranchCommit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
                 commits.add(commit);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         return commits;
+    }
+
+    //NOT TESTED
+    @Override
+    public RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
+        establishConnection();
+        try {
+            Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
+            RepositoryCommit repositoryCommit = commitService.getCommit(gitHubRepository, commitId);
+            String commitMessage = repositoryCommit.getCommit().getMessage();
+            String committerName = repositoryCommit.getCommitter().getName();
+            List<CommitStatus> commitStatuses = commitService.getStatuses(gitHubRepository, commitId);
+            Date commitDate = null;
+            for(CommitStatus commitStatus: commitStatuses) {
+                if(commitStatus.getCreatedAt() != null) {
+                    //umm sure
+                    commitDate = commitStatus.getCreatedAt();
+                    break;
+                }
+            }
+            CommitStats commitStats = repositoryCommit.getStats();
+            return new RepositoryProjectBranchCommit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override

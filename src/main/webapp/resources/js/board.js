@@ -6,6 +6,7 @@ let newTaskField = null;
 let isBoardActive = false;
 let taskStatuses = ["Not Started", "In Progress", "Needs Help", "Review", "Completed"];
 let taskTags = ["Research", "Feature Implementation", "Unit Test", "Bug Fix", "Refactor", "Other"];
+let taskRoles = ["Owner", "Helper", "Reviewer"];
 let hoverCounter = 0;
 
 $(function() {
@@ -87,12 +88,16 @@ $(function() {
 			if(isCodingTask(document.taskDetailsUpdateForm.tag.value)) {
 				//get selected commits if present
 				document.taskDetailsUpdateForm.commits.value = getSelectedMultiSelectBoxIds();
-
 				if(document.taskDetailsUpdateForm.branch.value == '') {
 					$('#taskFormErrors').html("Please select a branch.");
 					error = true;
 				} else if(document.taskDetailsUpdateForm.status.value == 'Completed' && document.taskDetailsUpdateForm.commits.value == '') {
 					$('#taskFormErrors').html("Please select one or more commits.");
+					error = true;
+				}
+				//if a selected commit is not listed in the commit list (which must have been populated by currently selected branch)
+				else if(selectedCommitsFromDifferentBranch()) {
+					$('#taskFormErrors').html("Please select commits from the selected branch only.");
 					error = true;
 				}
 			} else {
@@ -101,6 +106,7 @@ $(function() {
 			}
 		}
 		if(error) {
+			$('#taskFormUpdated').hide();
 			$('#taskFormErrors').show();
 		}
 		//submit form if all values present
@@ -271,7 +277,20 @@ $(function() {
 			$('#commitsField').hide();
 		}
 	});
+
+	$("#roleFilter").hide();
 });
+
+function selectedCommitsFromDifferentBranch() {
+	let selectedCommitsString = document.taskDetailsUpdateForm.commits.value;
+	let selectedCommitsArray = selectedCommitsString.split(',');
+	let selectedIds = new Set(selectedCommitsArray);
+	selectedIds.delete("");//bug somewhere that includes empty string in commit id list
+	$(".multiSelectBox").children().each(function() {
+		selectedIds.delete($(this).attr("id"));
+	});
+	return selectedIds.size > 0;
+}
 
 function refreshBoard() {
 	document.board.clear();
@@ -287,6 +306,32 @@ function generateContent(boardId, isCycle, isActive) {
 		document.board = initProductBoard(boardId);
 	}
 	refreshBoard();
+}
+
+function filterTasks() {
+	let userFilter = $("#userFilter").val();
+	if(userFilter === "all") {
+		$("#roleFilter").hide();
+		$("#roleFilter").val("all");
+	} else {
+		$("#roleFilter").show();
+	}
+	let roleFilter = $("#roleFilter").val();
+
+	for(let i=0; i<taskStatuses.length; i++) {
+		let cards = document.board.statuses[i].cards;
+		for(let j=0; j<cards.length; j++) {
+			let card = cards[j];
+			let userFilterMatch = userFilter === "all" || isUserAssigned(userFilter, card);
+			let roleFilterMatch = roleFilter === "all" || isUserAssignedWithRole(userFilter, card, roleFilter);
+			let displayCard = userFilterMatch && roleFilterMatch;
+			if(displayCard) {
+				$("#"+card.taskId).show();
+			} else {
+				$("#"+card.taskId).hide();
+			}
+		}
+	}
 }
 
 function initBoardColumn(name, div) {
@@ -337,7 +382,7 @@ function populateTaskFormValues(card, isCycleBoard) {
 	populateTaskNotes(card);
 	selectTag(card);
 	selectBranch(card);
-	if(card.repositoryProjectBranch != '') {
+	if(card.repositoryProjectBranch !== '') {
 		getBranchCommits(card.repositoryProjectBranch);
 	}
 	selectCommits(card);
@@ -358,9 +403,17 @@ function populateTaskCommits(data) {
 	for (i=0; i<data.length; i++) {
 		const commit = data[i];
 		if(i < 3) {
-			$('#commitTable').append("<tr id='"+commit.commitId+"' class='multiSelectBoxItem'><td style='width:100%;min-width:100%;'>" + commit.commitId + "<br/>" + commit.commitMessage + "</td></tr>");
+			if(selectedIds.has(commit.commitId)) {
+				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem selectedItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
+			} else {
+				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
+			}
 		} else {
-			$('#commitTable').append("<tr id='"+commit.commitId+"' class='multiSelectBoxItem hiddenItem'><td style='width:100%;min-width:100%;'>" + commit.commitId + "<br/>" + commit.commitMessage + "</td></tr>");
+			if (selectedIds.has(commit.commitId)) {
+				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem hiddenItem selectedItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
+			} else {
+				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem hiddenItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
+			}
 		}
 	}
 	if(i >= 3) {
@@ -818,7 +871,9 @@ function selectBranch(card) {
 function selectCommits(card) {
 	clearSelectedIds();
 	for (let i = 0; i < card.repositoryCommits.length; i++) {
-		selectItem($(".multiSelectBox").find("#"+card.repositoryCommits[i]));
+		if(card.repositoryCommits[i] !== "") {
+			selectItem($(".multiSelectBox").find("#" + card.repositoryCommits[i]));
+		}
 	}
 	let userId = $("#userId").attr("value");
 	if(!isBoardActive || !isUserAssigned(userId, card)) {
@@ -827,6 +882,7 @@ function selectCommits(card) {
 }
 
 function displaySuccess() {
+	$('#taskFormErrors').hide();
 	$('#taskFormUpdated').html("Task update successful!");
 	$('#taskFormUpdated').show();
 }
@@ -1140,6 +1196,16 @@ function cardNeedsHelperOrReviewer(card) {
 function isUserAssigned(userId, card) {
 	isUserAssignedToTask = isUserOwner(userId, card) || isUserHelper(userId, card) || isUserReviewer(userId, card);
 	return isUserAssignedToTask;
+}
+
+function isUserAssignedWithRole(userId, card, role) {
+	if(role === "Owner") {
+		return isUserOwner(userId, card);
+	} else if(role === "Helper") {
+		return isUserHelper(userId, card);
+	} else if(role === "Reviewer") {
+		return isUserReviewer(userId, card);
+	}
 }
 
 function isUserOwner(userId, card) {

@@ -11,6 +11,7 @@ import javax.persistence.Entity;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @Entity
@@ -104,17 +105,40 @@ public class GitLabRepositoryHost extends RepositoryHost {
         HttpEntity<?> entity = new HttpEntity<>(headers);
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName;
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName + "&with_stats=true";
             URI apiUri = new URI(url);
             ResponseEntity<GitLabCommit[]> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommit[].class);
 
             for(GitLabCommit gitLabCommit : response.getBody()) {
-                gitLabCommits.add(new RepositoryProjectBranchCommit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getCommiter_name()));
+                Date commitDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00")).parse(gitLabCommit.getCommitted_date());
+                GitLabCommitStats commitStats = gitLabCommit.getStats();
+                gitLabCommits.add(new RepositoryProjectBranchCommit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions()));
             }
         } catch(Exception e) {
             e.printStackTrace();
         }
         return gitLabCommits;
+    }
+
+    @Override
+    public RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+        try {
+            String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits/"+commitId;
+            URI apiUri = new URI(url);
+            ResponseEntity<GitLabCommit> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommit.class);
+            GitLabCommit gitLabCommit = response.getBody();
+            Date commitDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00")).parse(gitLabCommit.getCommitted_date());
+            GitLabCommitStats commitStats = gitLabCommit.getStats();
+            return new RepositoryProjectBranchCommit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     @Override
@@ -232,7 +256,10 @@ public class GitLabRepositoryHost extends RepositoryHost {
     public static class GitLabCommit {
         private String short_id;
         private String message;
-        private String committer_name;
+        private String author_name;
+        private String committed_date;
+        //@JsonUnwrapped
+        private GitLabCommitStats stats;
 
         public String getShort_id() {
             return this.short_id;
@@ -242,8 +269,18 @@ public class GitLabRepositoryHost extends RepositoryHost {
             return this.message;
         }
 
-        public String getCommiter_name() {
-            return this.committer_name;
+        public String getAuthor_name() {
+            return this.author_name;
+        }
+
+        public String getCommitted_date() { return this.committed_date; }
+
+        public GitLabCommitStats getStats() {
+            return stats;
+        }
+
+        public void setStats(GitLabCommitStats stats) {
+            this.stats = stats;
         }
     }
 
@@ -290,6 +327,36 @@ public class GitLabRepositoryHost extends RepositoryHost {
 
         public boolean isDeleted_file() {
             return deleted_file;
+        }
+    }
+
+    public static class GitLabCommitStats {
+        private int additions;
+        private int deletions;
+        private int total;
+
+        public int getAdditions() {
+            return additions;
+        }
+
+        public void setAdditions(int additions) {
+            this.additions = additions;
+        }
+
+        public int getDeletions() {
+            return deletions;
+        }
+
+        public void setDeletions(int deletions) {
+            this.deletions = deletions;
+        }
+
+        public int getTotal() {
+            return total;
+        }
+
+        public void setTotal(int total) {
+            this.total = total;
         }
     }
 

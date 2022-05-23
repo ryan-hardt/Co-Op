@@ -1,9 +1,6 @@
 package coop.controller;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -11,6 +8,7 @@ import coop.dao.*;
 import coop.model.*;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
+import coop.model.repository.RepositoryProjectBranchCommit;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;
@@ -38,6 +36,7 @@ public class ProjectController {
 				StatsDao workDao = new StatsDao();
 				List<User> projectUsers = project.getUsers();
 				List<User> owners = project.getOwners();
+				Map<User, UserStats> projectStatsMap = StatsController.generateProjectStats(project);
 
 				//assumes all users have access to all projects
                 model.addAttribute("project", project);
@@ -48,19 +47,17 @@ public class ProjectController {
                     }
                 });
 
-                double workPercentile = workDao.getProjectWorkPercentile(project, user);
-                double collaboratorPercentile = workDao.getProjectCollaboratorPercentile(project, user);
                 model.addAttribute("cycles", cycles);
                 model.addAttribute("users", projectUsers);
                 model.addAttribute("owners", owners);
                 model.addAttribute("isProjectOwner", owners.contains(user));
                 model.addAttribute("slackRegistrationLink", SlackUtil.generateRegistrationLink(request, project.getId()));
-                model.addAttribute("workPercentile", CoOpUtil.toPercentage(workPercentile, 1));
-                model.addAttribute("collaboratorPercentile", CoOpUtil.toPercentage(collaboratorPercentile, 1));
-                dest = "/project/viewProject";
+
+				dest = "/project/viewProject";
 
 				if(projectUsers.contains(user)) {
                     model.addAttribute("isMember", true);
+					model.addAttribute("projectStatsMap", projectStatsMap);
 				} else {
 			        /*
 					redirectAttributes.addFlashAttribute("error", "You do not have access to that project");

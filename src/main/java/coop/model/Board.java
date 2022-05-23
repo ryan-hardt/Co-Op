@@ -113,6 +113,16 @@ public class Board {
 		}
 	}
 
+	public List<Task> getTasksForUser(User user) {
+		List<Task> userTasks = new ArrayList<>();
+		for(Task task: this.tasks) {
+			if(task.getOwners().contains(user)) {
+				userTasks.add(task);
+			}
+		}
+		return userTasks;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

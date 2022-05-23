@@ -12,6 +12,7 @@ import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.mchange.v1.db.sql.UnsupportedTypeException;
 import coop.model.repository.RepositoryHost;
 import org.hibernate.annotations.*;
 
@@ -23,7 +24,7 @@ import coop.dao.UserDao;
 
 @Entity
 @Table(name = "coop_user")
-public class User {
+public class User implements Comparable {
 
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
@@ -235,6 +236,11 @@ public class User {
 	  return commonProjects;
   }
 
+  //used to determine whether user corresponds with git user
+  public boolean matchesName(String name) {
+      return name.equalsIgnoreCase(this.firstName + " " + this.getLastName());
+  }
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -283,8 +289,22 @@ public class User {
 			return false;
 		return true;
 	}
-	
-	public static class UserStatsSorter implements Comparator<User> { 
+
+    @Override
+    public int compareTo(Object o) {
+        if(o instanceof User) {
+            User otherUser = (User)o;
+            if(this.lastName.compareTo(otherUser.lastName) == 0) {
+                return this.firstName.compareTo(otherUser.firstName);
+            } else {
+                return this.lastName.compareTo(otherUser.lastName);
+            }
+        } else {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    public static class UserStatsSorter implements Comparator<User> {
 	    public int compare(User a, User b) { 
 	    	return a.getId().compareTo(b.getId());
 	    } 

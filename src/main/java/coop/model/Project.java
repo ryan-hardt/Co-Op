@@ -246,6 +246,16 @@ public class Project {
       this.slackWorkspace = slackWorkspace;
   }
 
+  //used to get the Co-Op user that corresponds to a git user
+  public User getProjectUserWithName(String name) {
+      for(User projectUser: this.users) {
+          if(projectUser.matchesName(name)) {
+              return projectUser;
+          }
+      }
+      return null;
+  }
+
     @Override
   public String toString() {
 	  return name;

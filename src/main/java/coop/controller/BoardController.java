@@ -81,6 +81,7 @@ public class BoardController {
 			model.addAttribute("projectId", project.getId());
 			model.addAttribute("repositoryProjectId", repositoryProject.getId());
 			model.addAttribute("repositoryProjectBranches", repositoryHost.retrieveProjectBranchesFromRepository(repositoryProject));
+			model.addAttribute("taskRoles", Task.TASK_ROLES);
 
 			if(board.getCycle() != null) {
 				model.addAttribute("cycleId", board.getCycle().getId());

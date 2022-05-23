@@ -132,62 +132,6 @@
 				</div>
 			</div>
 		</div>
-		<c:if test="${updatable}">
-		<div class="row">
-			<div class="col-sm-12">
-				<div class="card">
-					<div class="card-header">
-						Work
-						<select id="workTypeSelect" name="workType" onchange="updateCharts(this.value)">
-							<option value="role">View work by role</option>
-							<option value="tag">View work by tag</option>
-							<option value="collaborators">View collaborators by role</option>
-						</select>
-					</div>
-					<div class="card-body">
-						<ul class="list-inline border rounded" style="margin-top: 1%;">
-							<li id="workPercentileItem" class="list-inline-item"><span class="inline-item-label">Work percentile:</span> ${workPercentile}</li>
-							<li id="collaboratorPercentileItem" class="list-inline-item"><span class="inline-item-label">Collaborator percentile:</span> ${collaboratorPercentile}</li>
-						</ul>
-						<div id="allProjects">
-							<div class="row roleCharts">
-								<div class="col-sm-6"><canvas id="allRolesCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="ownerCanvas"></canvas></div>
-							</div>
-							<div class="row roleCharts">
-								<div class="col-sm-6"><canvas id="helperCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="reviewerCanvas"></canvas></div>
-							</div>
-							<div class="row tagCharts">
-								<div class="col-sm-6"><canvas id="allTagsCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="researchCanvas"></canvas></div>
-							</div>
-							<div class="row tagCharts">
-								<div class="col-sm-6"><canvas id="featureCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="testCanvas"></canvas></div>
-							</div>
-							<div class="row tagCharts">
-								<div class="col-sm-6"><canvas id="bugFixCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="refactorCanvas"></canvas></div>
-							</div>
-							<div class="row tagCharts">
-								<div class="col-sm-6"><canvas id="otherCanvas"></canvas></div>
-								<div class="col-sm-6"></div>
-							</div>
-							<div class="row collaboratorCharts">
-								<div class="col-sm-6"><canvas id="allRolesCollaboratorCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="ownerCollaboratorCanvas"></canvas></div>
-							</div>
-							<div class="row collaboratorCharts">
-								<div class="col-sm-6"><canvas id="helperCollaboratorCanvas"></canvas></div>
-								<div class="col-sm-6"><canvas id="reviewerCollaboratorCanvas"></canvas></div>
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		</div>
-		</c:if>
 		<div class="modal fade content" id="deleteModal" role="dialog">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -203,9 +147,6 @@
 				</div>
 			</div>
 		</div>
-		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.0/chart.min.js" integrity="sha512-VMsZqo0ar06BMtg0tPsdgRADvl0kDHpTbugCBBrL55KmucH6hP9zWdLIWY//OTfMnzz6xWQRxQqsUFefwHuHyg==" crossorigin="anonymous"></script>
-		<script src="<c:url value='/resources/js/work.js'/>"></script>
 		<script src="<c:url value='/resources/js/user.js'/>"></script>
-		<script>loadCharts();</script>
 	</jsp:body>
 </t:cardlessLayout>

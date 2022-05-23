@@ -1,18 +1,23 @@
 package coop.model.repository;
 
-import org.hibernate.annotations.Cascade;
-
-import javax.persistence.*;
+import java.util.Date;
+import java.util.Objects;
 
 public class RepositoryProjectBranchCommit {
     private String commitId;
     private String commitMessage;
     private String committerName;
+    private Date committedDate;
+    private int numLinesAdded;
+    private int numLinesDeleted;
 
-    public RepositoryProjectBranchCommit(String commitId, String commitMessage, String committerName) {
+    public RepositoryProjectBranchCommit(String commitId, String commitMessage, String committerName, Date committedDate, int numLinesAdded, int numLinesDeleted) {
         this.commitId = commitId;
         this.commitMessage = commitMessage;
         this.committerName = committerName;
+        this.committedDate = committedDate;
+        this.numLinesAdded = numLinesAdded;
+        this.numLinesDeleted = numLinesDeleted;
     }
 
     public String getCommitId() {
@@ -39,6 +44,30 @@ public class RepositoryProjectBranchCommit {
         this.committerName = committerName;
     }
 
+    public Date getCommittedDate() {
+        return committedDate;
+    }
+
+    public void setCommittedDate(Date committedDate) {
+        this.committedDate = committedDate;
+    }
+
+    public int getNumLinesAdded() {
+        return numLinesAdded;
+    }
+
+    public void setNumLinesAdded(int numLinesAdded) {
+        this.numLinesAdded = numLinesAdded;
+    }
+
+    public int getNumLinesDeleted() {
+        return numLinesDeleted;
+    }
+
+    public void setNumLinesDeleted(int numLinesDeleted) {
+        this.numLinesDeleted = numLinesDeleted;
+    }
+
     public boolean isRevert() {
         return this.commitMessage.contains("reverts commit");
     }
@@ -50,5 +79,18 @@ public class RepositoryProjectBranchCommit {
             revertedCommitId = this.commitMessage.substring(revertedCommitIdInd+15);
         }
         return revertedCommitId;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RepositoryProjectBranchCommit that = (RepositoryProjectBranchCommit) o;
+        return numLinesAdded == that.numLinesAdded && numLinesDeleted == that.numLinesDeleted && Objects.equals(commitId, that.commitId) && Objects.equals(commitMessage, that.commitMessage) && Objects.equals(committerName, that.committerName) && Objects.equals(committedDate, that.committedDate);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(commitId, commitMessage, committerName, committedDate, numLinesAdded, numLinesDeleted);
     }
 }

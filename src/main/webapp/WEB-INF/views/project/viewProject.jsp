@@ -129,60 +129,50 @@
 				</div>
 			</div>
 		</div>
-        <c:if test="${isMember}">
-		<div class="row">
-			<div class="col-sm-12">
-				<div class="card">
-					<div class="card-header">
-						Project Work
-						<select id="workTypeSelect" name="workType" onchange="initializeWorkStats(this.value, 'project', ${project.getId()})">
-							<option value="role">View work by role</option>
-							<option value="tag">View work by tag</option>
-							<option value="collaborators">View collaborators by role</option>
-						</select>
-					</div>
-					<div class="card-body">
-						<ul class="list-inline border rounded">
-							<li id="workPercentileItem" class="list-inline-item"><span class="inline-item-label">Work percentile:</span> ${workPercentile}</li>
-							<li id="collaboratorPercentileItem" class="list-inline-item"><span class="inline-item-label">Collaborator percentile:</span> ${collaboratorPercentile}</li>
-						</ul>
-						<div class="row roleCharts">
-							<div class="col-sm-6"><canvas id="allRolesCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="ownerCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row roleCharts">
-							<div class="col-sm-6"><canvas id="helperCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="reviewerCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row tagCharts">
-							<div class="col-sm-6"><canvas id="allTagsCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="researchCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row tagCharts">
-							<div class="col-sm-6"><canvas id="featureCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="testCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row tagCharts">
-							<div class="col-sm-6"><canvas id="bugFixCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="refactorCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row tagCharts">
-							<div class="col-sm-6"><canvas id="otherCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"></div>
-						</div>
-						<div class="row collaboratorCharts">
-							<div class="col-sm-6"><canvas id="allRolesCollaboratorCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="ownerCollaboratorCanvas-project${project.getId()}"></canvas></div>
-						</div>
-						<div class="row collaboratorCharts">
-							<div class="col-sm-6"><canvas id="helperCollaboratorCanvas-project${project.getId()}"></canvas></div>
-							<div class="col-sm-6"><canvas id="reviewerCollaboratorCanvas-project${project.getId()}"></canvas></div>
+		<c:if test="${isMember}">
+			<div class="row">
+				<div class="col-sm-12">
+					<div class="card">
+						<div class="card-header">Project Work</div>
+						<div class="card-body">
+							<div class="row">
+								<!-- loop through members -->
+								<c:forEach items="${projectStatsMap}" var="userStats">
+									<div class="col-sm-4">
+										<div class="card user-card">
+											<div class="card-body">
+												<div class="card-body-icon">
+													<i class="fa fa-fw fa-user-circle-o"></i>
+												</div>
+												<div class="mr-5">
+													<h3>${userStats.key}</h3>
+													<div>
+														<canvas id="user${userStats.key.id}Canvas-Role"></canvas>
+													</div>
+													<div>
+														<canvas id="user${userStats.key.id}Canvas-Tag"></canvas>
+													</div>
+													<c:if test="${userStats.value.allCommits.size() gt 0}">
+														<br/>
+														<h5>Commits</h5>
+														<c:forEach items="${userStats.value.allCommits}" var="commit">
+															<hr/>
+															<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
+															Added: ${commit.numLinesAdded} Deleted: ${commit.numLinesDeleted}<br/>
+															<fmt:formatDate type="both" timeStyle="short" value="${commit.committedDate}"/><br/>
+														</c:forEach>
+													</c:if>
+												</div>
+											</div>
+										</div>
+									</div>
+								</c:forEach>
+							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-		</div>
-        </c:if>
+		</c:if>
 		<div class="modal fade content" id="leaveModal" role="dialog">
 			<div class="modal-dialog">
 				<div class="modal-content">
@@ -200,6 +190,6 @@
 		</div>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.0/chart.min.js" integrity="sha512-VMsZqo0ar06BMtg0tPsdgRADvl0kDHpTbugCBBrL55KmucH6hP9zWdLIWY//OTfMnzz6xWQRxQqsUFefwHuHyg==" crossorigin="anonymous"></script>
 		<script src="<c:url value='/resources/js/work.js'/>"></script>
-		<script>initializeWorkStats('role', 'project', ${project.getId()})</script>
+		<script>initializeWorkStats('project', ${project.getId()})</script>
 	</jsp:body>
 </t:cardlessLayout>

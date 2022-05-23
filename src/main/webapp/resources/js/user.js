@@ -33,20 +33,6 @@ $(function() {
 	}
 });
 
-function loadCharts() {
-	//load stats for all projects (in work.js)
-	updateCharts('role');
-	$(".nav-link").click(function() {
-		$("#workTabContent").height($("#workTabContent").height());
-	});
-}
-
-function updateCharts(type) {
-	//load stats for all projects (in work.js)
-	$("#workTabContent").height('auto');
-	initializeWorkStats(type, 'all');	//work.js
-}
-
 function checkDuplicate(){
 	var username = document.getElementById('username').value;
 	var xmlhttp = new XMLHttpRequest();

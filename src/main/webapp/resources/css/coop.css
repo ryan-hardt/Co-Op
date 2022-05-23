@@ -135,6 +135,14 @@ div[class='card task-card-Other'] {
 	color: #FFFFFF !important;
 }
 
+.select-btn {
+	background: darkgray !important;
+	color: #FFFFFF !important;
+	border: 1px solid transparent;
+	height: 38px;
+	border-radius: .25rem;
+}
+
 .nav-btn {
 	background-color: #BF7B7F;
 	color: #FFFFFF !important;
@@ -197,6 +205,22 @@ div[class='card task-card-Other'] {
 	display: inline-block;
 	width: 18%;
 	font-size: 10pt;
+}
+
+.item-label-stats {
+	font-weight: bold;
+	margin-right: 2%;
+	display: inline-block;
+	width: 40%;
+	font-size: 10pt;
+}
+
+.stats-list {
+	background: #46B29D !important;
+}
+
+.stats-list li {
+	background: #46B29D !important;
 }
 
 .inline-item-label {
