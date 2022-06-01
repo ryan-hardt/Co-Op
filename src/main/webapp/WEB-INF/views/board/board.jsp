@@ -187,10 +187,10 @@
 								<c:forEach items="${projectUsers}" var="projectUser">
 					          	<tr id="${projectUser.getId()}" class="task-user-row">
 					          		<td>${projectUser}</td>
-					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-owner" value="owner" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
-					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-helper" value="helper" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
-					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-reviewer" value="reviewer" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
-					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-none" value="none" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
+					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-owner" value="Owner" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
+					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-helper" value="Helper" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
+					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-reviewer" value="Reviewer" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
+					          		<td><input type="radio" name="users-${projectUser.getId()}" id="${projectUser.getId()}-none" value="None" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>/></td>
 					          	</tr>
 								</c:forEach>
 							</table>

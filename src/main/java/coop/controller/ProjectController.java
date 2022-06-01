@@ -36,7 +36,6 @@ public class ProjectController {
 				StatsDao workDao = new StatsDao();
 				List<User> projectUsers = project.getUsers();
 				List<User> owners = project.getOwners();
-				Map<User, UserStats> projectStatsMap = StatsController.generateProjectStats(project);
 
 				//assumes all users have access to all projects
                 model.addAttribute("project", project);
@@ -56,7 +55,8 @@ public class ProjectController {
 				dest = "/project/viewProject";
 
 				if(projectUsers.contains(user)) {
-                    model.addAttribute("isMember", true);
+					Map<User, UserStats> projectStatsMap = StatsController.generateProjectStats(project);
+					model.addAttribute("isMember", true);
 					model.addAttribute("projectStatsMap", projectStatsMap);
 				} else {
 			        /*

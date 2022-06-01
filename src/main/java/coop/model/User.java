@@ -238,7 +238,7 @@ public class User implements Comparable {
 
   //used to determine whether user corresponds with git user
   public boolean matchesName(String name) {
-      return name != null && name.equalsIgnoreCase(this.firstName + " " + this.getLastName());
+      return name != null && name.equalsIgnoreCase(this.firstName + " " + this.lastName);
   }
 
 	@Override

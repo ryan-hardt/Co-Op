@@ -140,6 +140,7 @@ public class StatsController {
 		return cycleWorkByRole;
 	}
 
+	//workByRole: {userId : {role : minutes}})
 	private void addCycleWorkByRole(Cycle cycle, Map<Integer, Map<String, Integer>> workByRole) {
 		List<Work> cycleWork = workDao.getCycleWork(cycle.getBoard());
 		Map<String, Integer> roleMinutesMap;
@@ -156,7 +157,8 @@ public class StatsController {
 			workRole = workTask.getUserType(workUser);
 			workMinutes = w.getNumMinutes();
 
-			roleMinutesMap = workByRole.get(workUser);
+			//roleMinutesMap: {role : minutes} for given userId
+			roleMinutesMap = workByRole.get(workUser.getId());
 			if (roleMinutesMap == null) {
 				roleMinutesMap = new HashMap<>();
 				workByRole.put(workUser.getId(), roleMinutesMap);
@@ -196,7 +198,7 @@ public class StatsController {
 			workTag = workTask.getTag();
 			workMinutes = w.getNumMinutes();
 
-			tagMinutesMap = workByTag.get(workUser);
+			tagMinutesMap = workByTag.get(workUser.getId());
 			if (tagMinutesMap == null) {
 				tagMinutesMap = new HashMap<>();
 				workByTag.put(workUser.getId(), tagMinutesMap);
