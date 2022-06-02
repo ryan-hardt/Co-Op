@@ -109,7 +109,7 @@ $(function() {
 					method: "POST",
 					data: $("#taskDetailsUpdateForm").serialize(),
 					success: (data,status) => {
-						displaySuccess();
+						displaySuccess("Task update successful!");
 						refreshBoard();
 					},
 					error: () => {
@@ -117,6 +117,24 @@ $(function() {
 					}
 				});
 		}
+	});
+
+	$('#next-cycle-btn').click(function () {
+		const url = "copyTaskToNextCycle/"+$("#taskId").val();
+		jQuery.ajax(
+			url, {
+				async: false,
+				method: "POST",
+				success: (data,status) => {
+					displaySuccess("Task copied to next cycle");
+				},
+				error: () => {
+					console.log("error when updating task details");
+					$('#taskFormUpdated').hide();
+					$('#taskFormErrors').html("Task could not be copied to next cycle");
+					$('#taskFormErrors').show();
+				}
+			});
 	});
 	
 	$('#deleteTask').click(function () {
@@ -184,7 +202,7 @@ $(function() {
 						method: "POST",
 						data: $("#taskUsersUpdateForm").serialize(),
 						success: (data,status) => {
-							displaySuccess();
+							displaySuccess("Task update successful!");
 							refreshBoard();
 						},
 						error: () => {
@@ -349,6 +367,7 @@ function populateTaskFormValues(card, isCycleBoard) {
 	$('#description').val(card.description);
 	populateTaskNotes(card);
 	selectTag(card);
+	selectStatus(card);
 	selectBranch(card);
 	if(isCycleBoard) {
 		if(isCodingTask(card.tag)) {
@@ -779,6 +798,16 @@ function selectTag(card) {
 	}
 }
 
+function selectStatus(card) {
+	if(card.status !== undefined) {
+		$('#newStatus > option').each(function() {
+			if($(this).val() == card.status) {
+				$(this).prop("selected", true);
+			}
+		});
+	}
+}
+
 function selectBranch(card) {
 	if(card.repositoryProjectBranch == undefined || card.repositoryProjectBranch == '') {
 		$('#emptyBranchOption').prop("selected", true);
@@ -792,9 +821,9 @@ function selectBranch(card) {
 }
 
 
-function displaySuccess() {
+function displaySuccess(msg) {
 	$('#taskFormErrors').hide();
-	$('#taskFormUpdated').html("Task update successful!");
+	$('#taskFormUpdated').html(msg);
 	$('#taskFormUpdated').show();
 }
 
@@ -883,7 +912,7 @@ function initProductBoardCard(card) {
 		/* allow return key to finish editing */
 		jqCardTextInput.keyup(function(e) {
 			if(e.which == 13) {
-				jqCardTextInput.trigger( "blur" );
+				processNewCardText(e);
 			}
 		});
 		

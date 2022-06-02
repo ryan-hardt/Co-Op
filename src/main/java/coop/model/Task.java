@@ -62,9 +62,6 @@ import java.util.ArrayList;
 	
 	  @Column(name = "time_estimate")
 	  private Double timeEstimate;
-	
-	  @Column(name = "time_spent")
-	  private Double timeSpent;
 	  
 	  @Column(name = "completion_date_est")
 	  private Date completionDateEst;
@@ -130,7 +127,6 @@ import java.util.ArrayList;
 	  public Task() {
 		  this.description = "";
 		  this.notes = new ArrayList<Note>();
-		  this.board = new Board();
 		  this.work = new ArrayList<Work>();
 		  this.owners = new ArrayList<User>();
 		  this.helpers = new ArrayList<User>();
@@ -138,8 +134,22 @@ import java.util.ArrayList;
 		  this.taskHistories = new ArrayList<TaskHistory>();
 		  this.impactedFiles = new ArrayList<ImpactedProjectFile>();
 		  this.timeEstimate = 0.0;
-		  this.timeSpent = 0.0;
 		  this.repositoryProjectBranch = "";
+	  }
+
+	  public Task(Task otherTask) {
+		  this.description = otherTask.description;
+		  this.notes = new ArrayList<>(otherTask.notes);
+		  this.work = new ArrayList<>();			//work is wiped for copied tasks
+		  this.owners = new ArrayList<>(otherTask.owners);
+		  this.helpers = new ArrayList<>(otherTask.helpers);
+		  this.reviewers = new ArrayList<>(otherTask.reviewers);
+		  this.taskHistories = new ArrayList<>();	//history is wiped for copied tasks
+		  this.impactedFiles = new ArrayList<>();	//impact analysis must be repeated for copied tasks
+		  this.timeEstimate = 0.0;
+		  this.repositoryProjectBranch = "";		//branch selection must be repeated for copied tasks
+		  this.tag = otherTask.tag;
+		  this.status = Task.NOT_STARTED;
 	  }
 	  
 	  @Override
@@ -227,14 +237,6 @@ import java.util.ArrayList;
 	
 	  public void setTimeEstimate(Double timeEstimate) {
 	    this.timeEstimate = timeEstimate;
-	  }
-	
-	  public Double getTimeSpent() {
-	    return timeSpent;
-	  }
-	
-	  public void setTimeSpent(Double timeSpent) {
-	    this.timeSpent = timeSpent;
 	  }
 	
 	  public String getRepositoryProjectBranch() {
@@ -384,7 +386,6 @@ import java.util.ArrayList;
 	    result = prime * result + ((status == null) ? 0 : status.hashCode());
 	    result = prime * result + ((tag == null) ? 0 : tag.hashCode());
 	    result = prime * result + ((timeEstimate == null) ? 0 : timeEstimate.hashCode());
-	    result = prime * result + ((timeSpent == null) ? 0 : timeSpent.hashCode());
 	    result = prime * result + ((repositoryProjectBranch == null) ? 0 : repositoryProjectBranch.hashCode());
 	    result = prime * result + ((owners == null) ? 0 : owners.hashCode());
 	    result = prime * result + ((helpers == null) ? 0 : helpers.hashCode());
@@ -435,11 +436,6 @@ import java.util.ArrayList;
 	      if (other.timeEstimate != null)
 	        return false;
 	    } else if (!timeEstimate.equals(other.timeEstimate))
-	      return false;
-	    if (timeSpent == null) {
-	      if (other.timeSpent != null)
-	        return false;
-	    } else if (!timeSpent.equals(other.timeSpent))
 	      return false;
 	    if (repositoryProjectBranch == null) {
 	      if (other.repositoryProjectBranch != null)

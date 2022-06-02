@@ -108,6 +108,14 @@
 							</div>
 							<c:choose>
 							<c:when test="${board.getCycle()!=null}">
+							<div class="form-group">
+								<label for="newStatus">Status</label>
+								<select class="form-control" id="newStatus" name="newStatus" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>>
+									<c:forEach items="${statuses}" var="status">
+										<option value="${status}">${status}</option>
+									</c:forEach>
+								</select>
+							</div>
 							<div id="branchField" class="form-group">
 								<label for="branch">Branch</label>
 								<select class="form-control" id="branch" name="branch" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>>
@@ -224,6 +232,9 @@
 					<button id="submit-task-details-btn" class="btn submit-btn" type="submit">Update</button>
 					<button id="submit-task-users-btn" class="btn submit-btn" type="submit">Update</button>
 					<button id="task-delete-btn" class="btn delete-btn" type="submit" data-toggle="modal" data-target="#deleteModal">Delete</button>
+					</c:if>
+					<c:if test="${!board.isActive() and CycleNum lt cycles.size()}">
+						<button id="next-cycle-btn" class="btn submit-btn" type="submit">Copy to Next Cycle</button>
 					</c:if>
 					<input type="submit" id="deleteTask" style="display: none;">
 				</div>

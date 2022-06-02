@@ -340,6 +340,15 @@ public class BoardController {
 	    	task.setTag(newTag);
 	    	addTaskChange(taskHistory, "Tag", currentTag, newTag);
 	    }
+
+		//update status (if changed)
+		String currentStatus = task.getStatus();
+		String newStatus = allRequestParams.get("newStatus");
+		if(newStatus != null && !newStatus.isEmpty() && !newStatus.equals(currentStatus)) {
+			foundChange = true;
+			task.setStatus(newStatus);
+			addTaskChange(taskHistory, "Status", currentStatus, newStatus);
+		}
 	    
 	    //update branch (if changed)
 	    String currentBranch = task.getRepositoryProjectBranch();
@@ -413,7 +422,49 @@ public class BoardController {
 			CoOpUtil.updateUserSession(request);
 	    }
 	}
-	
+
+	@RequestMapping(value = "/board/copyTaskToNextCycle/{taskId}", method = RequestMethod.POST)
+	@ResponseStatus(value = HttpStatus.OK)
+	public void copyTaskToNextCycleResponder(HttpServletRequest request, @PathVariable("taskId") String taskIdStr) {
+		int taskId = Integer.parseInt(taskIdStr);
+		TaskDao taskDao = new TaskDao();
+		Task task = taskDao.getTask(taskId);
+		TaskHistory taskHistory = new TaskHistory();
+
+		// check to see if the user belongs to the project
+		if (!UserDao.loggedIn(request) || !userHasProjectAccess(task.getProject(), request)) {
+			return;
+		}
+		//prevent cycle change to task on active board
+		if(task.getBoard().isActive()) {
+			return;
+		}
+
+		Task taskCopy = new Task(task);
+		List<Cycle> projectCycles = task.getProject().getCycles();
+		Cycle cycle;
+		Board newBoard = null;
+		boolean isNextCycle = false;
+		for(int i=0; i<projectCycles.size(); i++) {
+			cycle = projectCycles.get(i);
+			if(isNextCycle) {
+				newBoard = cycle.getBoard();
+				taskCopy.addBoard(newBoard);
+				newBoard.addTask(taskCopy);
+				initTaskPriority(taskCopy);
+
+				if(taskDao.insertTask(taskCopy)) {
+					addTaskChange(taskHistory, "Cycle", ""+i, ""+(i+1));
+					insertTaskHistory(taskHistory, taskCopy, UserDao.getUserFromSession(request));
+				}
+				break;
+			} else if(task.getBoard().getCycle().equals(cycle)) {
+				isNextCycle = true;
+			}
+		}
+
+	}
+
 	@RequestMapping(value = "/board/updateTaskUsers/{taskId}", method = RequestMethod.POST)
 	@ResponseStatus(value = HttpStatus.OK)
 	public void updateTaskUsersResponder(HttpServletRequest request, @RequestParam Map<String,String> allRequestParams, @PathVariable("taskId") String taskIdStr) {
