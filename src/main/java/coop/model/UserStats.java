@@ -1,6 +1,6 @@
 package coop.model;
 
-import coop.model.repository.RepositoryProjectBranchCommit;
+import coop.model.repository.Commit;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +15,8 @@ public class UserStats {
     private int numWorkMinutesForBugFix;
     private int numWorkMinutesForRefactor;
     private int numWorkMinutesForOther;
-    private List<RepositoryProjectBranchCommit> allCommits;
-    private List<RepositoryProjectBranchCommit> mergedCommits;
+    private List<Commit> allCommits;
+    private List<Commit> mergedCommits;
 
     public UserStats() {
         this.allCommits = new ArrayList<>();
@@ -95,17 +95,17 @@ public class UserStats {
         this.numWorkMinutesForOther = numWorkMinutesForOther;
     }
 
-    public List<RepositoryProjectBranchCommit> getAllCommits() {
+    public List<Commit> getAllCommits() {
         return allCommits;
     }
 
-    public List<RepositoryProjectBranchCommit> getMergedCommits() { return mergedCommits; }
+    public List<Commit> getMergedCommits() { return mergedCommits; }
 
-    public void addCommit(RepositoryProjectBranchCommit commit) {
+    public void addCommit(Commit commit) {
         this.allCommits.add(commit);
     }
 
-    public void addMergedCommit(RepositoryProjectBranchCommit commit) {
+    public void addMergedCommit(Commit commit) {
         this.mergedCommits.add(commit);
     }
 
@@ -143,5 +143,9 @@ public class UserStats {
 
     public void addWorkMinutesForOther(int workMinutes) {
         this.numWorkMinutesForOther += workMinutes;
+    }
+
+    public boolean isEmpty() {
+        return (numWorkMinutesReportedAsOwner + numWorkMinutesReportedAsHelper + numWorkMinutesReportedAsReviewer) == 0;
     }
 }

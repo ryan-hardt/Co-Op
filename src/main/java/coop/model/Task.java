@@ -32,6 +32,7 @@ import java.util.ArrayList;
 	  public static final String OTHER = "Other";
 	  //statuses
 	  public static final String NOT_STARTED = "Not Started";
+	  public static final String IMPACT_ANALYSIS = "Impact Analysis";
 	  public static final String IN_PROGRESS = "In Progress";
 	  public static final String NEEDS_HELP = "Needs Help";
 	  public static final String REVIEW = "Review";
@@ -39,7 +40,7 @@ import java.util.ArrayList;
 	  public static final String COMPLETED = "Completed";
 	  //These lists are repeated in board.js
 	  public static final String[] TASK_TAGS = {RESEARCH, FEATURE, UNIT_TEST, BUG_FIX, REFACTOR, OTHER};
-	  public static final String[] TASK_STATUSES = {NOT_STARTED, IN_PROGRESS, NEEDS_HELP, REVIEW, COMPLETED};
+	  public static final String[] TASK_STATUSES = {NOT_STARTED, IMPACT_ANALYSIS, IN_PROGRESS, REVIEW, COMPLETED};
 	  public static final String[] TASK_ROLES = {OWNER, HELPER, REVIEWER};
 
 	  @Id
@@ -70,9 +71,6 @@ import java.util.ArrayList;
 	  
 	  @Column(name = "repository_project_branch")
 	  private String repositoryProjectBranch;
-	  
-	  @ElementCollection
-	  private List<String> repositoryCommits;
 	  
 	  @Transient
 	  private String fmtCompletionDateEst;
@@ -142,7 +140,6 @@ import java.util.ArrayList;
 		  this.timeEstimate = 0.0;
 		  this.timeSpent = 0.0;
 		  this.repositoryProjectBranch = "";
-		  this.repositoryCommits = new ArrayList<String>();
 	  }
 	  
 	  @Override
@@ -246,14 +243,6 @@ import java.util.ArrayList;
 
 	  public void setRepositoryProjectBranch(String gitLabProjectBranch) {
 		this.repositoryProjectBranch = gitLabProjectBranch;
-	  }
-
-	  public List<String> getRepositoryCommits() {
-		return repositoryCommits;
-	  }
-
-	  public void setRepositoryCommits(List<String> gitLabCommit) {
-		this.repositoryCommits = gitLabCommit;
 	  }
 
 	  public List<Note> getNotes() {
@@ -397,7 +386,6 @@ import java.util.ArrayList;
 	    result = prime * result + ((timeEstimate == null) ? 0 : timeEstimate.hashCode());
 	    result = prime * result + ((timeSpent == null) ? 0 : timeSpent.hashCode());
 	    result = prime * result + ((repositoryProjectBranch == null) ? 0 : repositoryProjectBranch.hashCode());
-	    result = prime * result + ((repositoryCommits == null) ? 0 : repositoryCommits.hashCode());
 	    result = prime * result + ((owners == null) ? 0 : owners.hashCode());
 	    result = prime * result + ((helpers == null) ? 0 : helpers.hashCode());
 	    result = prime * result + ((reviewers == null) ? 0 : reviewers.hashCode());
@@ -458,12 +446,7 @@ import java.util.ArrayList;
 	        return false;
 	    } else if (!repositoryProjectBranch.equals(other.repositoryProjectBranch))
 	      return false;
-	    if (repositoryCommits == null) {
-		      if (other.repositoryCommits != null)
-		        return false;
-		    } else if (!repositoryCommits.equals(other.repositoryCommits))
-		      return false;
-	    if (owners == null) {
+		if (owners == null) {
 	      if (other.owners != null)
 	        return false;
 	    } else if(other.getOwners() != null && owners.size() == other.getOwners().size()) {

@@ -4,7 +4,7 @@ let currentHoveredCard = null;
 let isUserAssignedToTask = false;
 let newTaskField = null;
 let isBoardActive = false;
-let taskStatuses = ["Not Started", "In Progress", "Needs Help", "Review", "Completed"];
+let taskStatuses = ["Not Started", "Impact Analysis", "In Progress", "Review", "Completed"];
 let taskTags = ["Research", "Feature Implementation", "Unit Test", "Bug Fix", "Refactor", "Other"];
 let taskRoles = ["Owner", "Helper", "Reviewer"];
 let hoverCounter = 0;
@@ -54,12 +54,14 @@ $(function() {
 	$("#toggle-impact-form").click(function() {
 		if($("#impact-form-container").is(":visible")) {
 			$("#impact-form-container").hide();
+			$("#toggle-impact-form").html("Add Impacted Files");
 		} else {
 			//if a file tree has not yet been retrieved
 			if($("#fileTreeList").length == 0) {
-				getRepositoryTree($("#repositoryProjectId").val(), $("#impactBranchName").val());
+				getRepositoryTree($("#repositoryProjectId").val(), $("#branch").val());
 			}
 			$("#impact-form-container").show();
+			$("#toggle-impact-form").html("Hide Impacted File Tree");
 		}
 	});
 	
@@ -86,23 +88,12 @@ $(function() {
 				error = true;
 			}
 			if(isCodingTask(document.taskDetailsUpdateForm.tag.value)) {
-				//get selected commits if present
-				document.taskDetailsUpdateForm.commits.value = getSelectedMultiSelectBoxIds();
 				if(document.taskDetailsUpdateForm.branch.value == '') {
 					$('#taskFormErrors').html("Please select a branch.");
-					error = true;
-				} else if(document.taskDetailsUpdateForm.status.value == 'Completed' && document.taskDetailsUpdateForm.commits.value == '') {
-					$('#taskFormErrors').html("Please select one or more commits.");
-					error = true;
-				}
-				//if a selected commit is not listed in the commit list (which must have been populated by currently selected branch)
-				else if(selectedCommitsFromDifferentBranch()) {
-					$('#taskFormErrors').html("Please select commits from the selected branch only.");
 					error = true;
 				}
 			} else {
 				document.taskDetailsUpdateForm.branch.value = '';
-				document.taskDetailsUpdateForm.commits.value = '';
 			}
 		}
 		if(error) {
@@ -157,7 +148,7 @@ $(function() {
 			url, {
 				async: false,
 				method: "POST",
-				data: {branch: $("#impactBranchName").val(), impactedFilePaths: JSON.stringify(impactedFiles)},
+				data: {branch: $("#branch").val(), impactedFilePaths: JSON.stringify(impactedFiles)},
 				success: (data) => {
 					$("#impact-form-container").hide();
 					removeAddedFilesFromList(data);
@@ -253,15 +244,6 @@ $(function() {
 	    evt.preventDefault();
 	});
 	
-	$("#branch").change(function() {
-		getBranchCommits($(this).val());
-	});
-
-	$("#impactBranchName").change(function() {
-		getRepositoryTree($("#repositoryProjectId").val(), $(this).val());
-	});
-
-	
 	var taskTagOptions = "<option id='emptyTagOption' value=''>Choose a tag</option>";
 	for(let i=0; i<taskTags.length; i++) {
 		taskTagOptions += "<option value='"+taskTags[i]+"'>"+taskTags[i]+"</option>";
@@ -271,26 +253,13 @@ $(function() {
 	$('#tag').change(function() {
 		if(isCodingTask($('#tag').find(":selected").val())) {
 			$('#branchField').show();
-			$('#commitsField').show();
 		} else {
 			$('#branchField').hide();
-			$('#commitsField').hide();
 		}
 	});
 
 	$("#roleFilter").hide();
 });
-
-function selectedCommitsFromDifferentBranch() {
-	let selectedCommitsString = document.taskDetailsUpdateForm.commits.value;
-	let selectedCommitsArray = selectedCommitsString.split(',');
-	let selectedIds = new Set(selectedCommitsArray);
-	selectedIds.delete("");//bug somewhere that includes empty string in commit id list
-	$(".multiSelectBox").children().each(function() {
-		selectedIds.delete($(this).attr("id"));
-	});
-	return selectedIds.size > 0;
-}
 
 function refreshBoard() {
 	document.board.clear();
@@ -374,7 +343,6 @@ function loadTaskDetail(card, isCycleBoard) {
 
 function populateTaskFormValues(card, isCycleBoard) {
 	$('#branchField').hide();
-	$('#commitsField').hide();
 	
 	$('#taskId').val(card.taskId);
 	$('#taskStatus').val(card.status);
@@ -382,42 +350,13 @@ function populateTaskFormValues(card, isCycleBoard) {
 	populateTaskNotes(card);
 	selectTag(card);
 	selectBranch(card);
-	if(card.repositoryProjectBranch !== '') {
-		getBranchCommits(card.repositoryProjectBranch);
-	}
-	selectCommits(card);
 	if(isCycleBoard) {
 		if(isCodingTask(card.tag)) {
 			$('#branchField').show();
-			$('#commitsField').show();
 		}
 		$('#timeEstimate').val(card.timeEstimate);
 		$('#fmtCompletionDateEst').val(card.fmtCompletionDateEst);
 		populateUserRoles(card);
-	}
-}
-
-function populateTaskCommits(data) {
-	$("#commitTable").empty();
-	var i;
-	for (i=0; i<data.length; i++) {
-		const commit = data[i];
-		if(i < 3) {
-			if(selectedIds.has(commit.commitId)) {
-				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem selectedItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
-			} else {
-				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
-			}
-		} else {
-			if (selectedIds.has(commit.commitId)) {
-				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem hiddenItem selectedItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
-			} else {
-				$('#commitTable').append("<tr id='" + commit.commitId + "' class='multiSelectBoxItem hiddenItem'><td style='width:100%;min-width:100%;'>" + commit.committerName + ": " + commit.commitId + "<br/>" + commit.commitMessage + "<hr/></td></tr>");
-			}
-		}
-	}
-	if(i >= 3) {
-		$('#commitTable').append("<tr><td id='exp-col-btn' style='width:100%;min-width:100%;'>&#x25BC;</td></tr>");
 	}
 }
 
@@ -505,7 +444,7 @@ function populateTaskWork(card) {
 function populateTaskImpact(card) {
 	$('#task-impact-list').empty();
 	if(card.impactedFiles != undefined && card.impactedFiles.length > 0) {
-		$("#impactBranchName option[value='"+card.impactedFiles[0].branch+"']").prop('selected', true);
+		$("#branch option[value='"+card.impactedFiles[0].branch+"']").prop('selected', true);
 		$('#task-impact-list').append("<ul class='list-group'>");
 		for(let i=0; i<card.impactedFiles.length; i++) {
 			let impactedFile = card.impactedFiles[i];
@@ -677,22 +616,6 @@ function addFileToRepositoryTree(path) {
 	}
 }
 
-function getBranchCommits(branch) {
-	const projectId = $("#projectId").val();
-	const url = "commits/"+projectId+"/"+branch;
-	jQuery.ajax(
-		url, {
-			async: false,
-			method: "POST",
-			success: (data,status) => {
-				populateTaskCommits(data);
-			},
-			error: () => {
-				console.log("error when obtaining branch commits");
-			}
-		});
-}
-
 function getRepositoryTree(repositoryProjectId, branchName) {
 	const url = "/coop/repository/queryRepositoryProjectFiles/"+repositoryProjectId+"/"+branchName+"/"+$("#taskId").val();
 	$("#filesLoading").show();
@@ -749,8 +672,8 @@ function displayTaskImpact() {
 	$('#submit-task-users-btn').hide();
 	$('#taskFormErrors').hide();
 	$('#taskFormUpdated').hide();
-	//TODO: ADD PERMISSIONS
 	$("#impact-form-container").hide();
+	$("#toggle-impact-form").html("Add Impacted Files");
 	$("#task-impact").show();
 	$("#task-impact-btn").addClass("active-nav-btn");
 }
@@ -868,18 +791,6 @@ function selectBranch(card) {
 	}
 }
 
-function selectCommits(card) {
-	clearSelectedIds();
-	for (let i = 0; i < card.repositoryCommits.length; i++) {
-		if(card.repositoryCommits[i] !== "") {
-			selectItem($(".multiSelectBox").find("#" + card.repositoryCommits[i]));
-		}
-	}
-	let userId = $("#userId").attr("value");
-	if(!isBoardActive || !isUserAssigned(userId, card)) {
-		preventUpdates();
-	}
-}
 
 function displaySuccess() {
 	$('#taskFormErrors').hide();

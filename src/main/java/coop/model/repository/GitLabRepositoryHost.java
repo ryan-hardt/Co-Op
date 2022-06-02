@@ -74,7 +74,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public List<String> retrieveProjectBranchesFromRepository(RepositoryProject repositoryProject) {
+    public List<String> retrieveBranchesFromRepository(RepositoryProject repositoryProject) {
         List<String> gitLabProjectBranches = new ArrayList<String>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
@@ -97,22 +97,26 @@ public class GitLabRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public List<RepositoryProjectBranchCommit> retrieveProjectBranchCommitsFromRepository(RepositoryProject repositoryProject, String branchName) {
-        List<RepositoryProjectBranchCommit> gitLabCommits = new ArrayList<RepositoryProjectBranchCommit>();
+    public List<Commit> retrieveCommitsFromRepository(RepositoryProject repositoryProject, String branchName, Date startDate, Date endDate) {
+        List<Commit> gitLabCommits = new ArrayList<Commit>();
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
         HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00");
+        String startDateStr = sdf.format(startDate);
+        String endDateStr = sdf.format(endDate);
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName + "&with_stats=true";
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName + "&with_stats=true&since=" + startDateStr + "&until=" + endDateStr;
             URI apiUri = new URI(url);
             ResponseEntity<GitLabCommit[]> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommit[].class);
 
             for(GitLabCommit gitLabCommit : response.getBody()) {
-                Date commitDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00")).parse(gitLabCommit.getCommitted_date());
+                Date commitDate = sdf.parse(gitLabCommit.getCommitted_date());
                 GitLabCommitStats commitStats = gitLabCommit.getStats();
-                gitLabCommits.add(new RepositoryProjectBranchCommit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions()));
+                gitLabCommits.add(new Commit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions()));
             }
         } catch(Exception e) {
             e.printStackTrace();
@@ -121,7 +125,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
+    public Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
@@ -134,7 +138,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
             GitLabCommit gitLabCommit = response.getBody();
             Date commitDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00")).parse(gitLabCommit.getCommitted_date());
             GitLabCommitStats commitStats = gitLabCommit.getStats();
-            return new RepositoryProjectBranchCommit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions());
+            return new Commit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions());
         } catch(Exception e) {
             e.printStackTrace();
         }

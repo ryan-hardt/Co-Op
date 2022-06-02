@@ -3,7 +3,7 @@ package coop.model.repository;
 import java.util.Date;
 import java.util.Objects;
 
-public class RepositoryProjectBranchCommit {
+public class Commit {
     private String commitId;
     private String commitMessage;
     private String committerName;
@@ -11,7 +11,7 @@ public class RepositoryProjectBranchCommit {
     private int numLinesAdded;
     private int numLinesDeleted;
 
-    public RepositoryProjectBranchCommit(String commitId, String commitMessage, String committerName, Date committedDate, int numLinesAdded, int numLinesDeleted) {
+    public Commit(String commitId, String commitMessage, String committerName, Date committedDate, int numLinesAdded, int numLinesDeleted) {
         this.commitId = commitId;
         this.commitMessage = commitMessage;
         this.committerName = committerName;
@@ -85,7 +85,7 @@ public class RepositoryProjectBranchCommit {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        RepositoryProjectBranchCommit that = (RepositoryProjectBranchCommit) o;
+        Commit that = (Commit) o;
         return numLinesAdded == that.numLinesAdded && numLinesDeleted == that.numLinesDeleted && Objects.equals(commitId, that.commitId) && Objects.equals(commitMessage, that.commitMessage) && Objects.equals(committerName, that.committerName) && Objects.equals(committedDate, that.committedDate);
     }
 

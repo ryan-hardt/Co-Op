@@ -168,11 +168,11 @@ function initializeWorkStats(scope, id) {
 }
 
 function createChart(dataMap, userId, chartTitle) {
-	let ctx = document.getElementById('user'+userId+'Canvas-'+chartTitle);
+	let chartDiv = document.getElementById('user'+userId+'Canvas-'+chartTitle);
 	let myLabels = generateWorkStatLabels(dataMap);
 	let myData = generateWorkStatDatasets(dataMap);
 
-	let myChart = new Chart(ctx, {
+	let myChart = new Chart(chartDiv, {
 		type: 'pie',
 		data: {
 			labels: myLabels,

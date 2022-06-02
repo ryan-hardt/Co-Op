@@ -6,18 +6,10 @@ import org.eclipse.egit.github.core.client.GitHubClient;
 import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.ContentsService;
 import org.eclipse.egit.github.core.service.RepositoryService;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.client.RestTemplate;
 
 import javax.persistence.Entity;
 import javax.persistence.Transient;
-import javax.swing.text.AbstractDocument;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.util.*;
 
 @Entity
@@ -74,7 +66,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public List<String> retrieveProjectBranchesFromRepository(RepositoryProject repositoryProject) {
+    public List<String> retrieveBranchesFromRepository(RepositoryProject repositoryProject) {
         List<String> projectBranches = new ArrayList<String>();
         establishConnection();
         try {
@@ -90,8 +82,8 @@ public class GitHubRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public List<RepositoryProjectBranchCommit> retrieveProjectBranchCommitsFromRepository(RepositoryProject repositoryProject, String branchName) {
-        List<RepositoryProjectBranchCommit> commits = new ArrayList<RepositoryProjectBranchCommit>();
+    public List<Commit> retrieveCommitsFromRepository(RepositoryProject repositoryProject, String branchName, Date startDate, Date endDate) {
+        List<Commit> commits = new ArrayList<Commit>();
         establishConnection();
         try {
             Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
@@ -109,7 +101,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
                     }
                 }
                 CommitStats commitStats = repositoryCommit.getStats();
-                RepositoryProjectBranchCommit commit = new RepositoryProjectBranchCommit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
+                Commit commit = new Commit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
                 commits.add(commit);
             }
         } catch (IOException e) {
@@ -120,7 +112,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
 
     //NOT TESTED
     @Override
-    public RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
+    public Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
         establishConnection();
         try {
             Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
@@ -137,7 +129,7 @@ public class GitHubRepositoryHost extends RepositoryHost {
                 }
             }
             CommitStats commitStats = repositoryCommit.getStats();
-            return new RepositoryProjectBranchCommit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
+            return new Commit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
         } catch (IOException e) {
             e.printStackTrace();
         }

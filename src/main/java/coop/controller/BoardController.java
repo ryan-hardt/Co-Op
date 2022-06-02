@@ -12,7 +12,7 @@ import coop.dao.*;
 import coop.model.*;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
-import coop.model.repository.RepositoryProjectBranchCommit;
+import coop.model.repository.Commit;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -22,7 +22,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.servlet.HandlerMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -80,7 +79,7 @@ public class BoardController {
 			model.addAttribute("projectUsers", project.getUsers());
 			model.addAttribute("projectId", project.getId());
 			model.addAttribute("repositoryProjectId", repositoryProject.getId());
-			model.addAttribute("repositoryProjectBranches", repositoryHost.retrieveProjectBranchesFromRepository(repositoryProject));
+			model.addAttribute("repositoryProjectBranches", repositoryHost.retrieveBranchesFromRepository(repositoryProject));
 			model.addAttribute("taskRoles", Task.TASK_ROLES);
 
 			if(board.getCycle() != null) {
@@ -158,7 +157,7 @@ public class BoardController {
 		//if status changed
 		if(!oldStatus.equals(newStatus)) {
 			//enforce fields (if appropriate)
-			if(!Task.NOT_STARTED.equals(newStatus)) {
+			if(!Task.NOT_STARTED.equals(newStatus) && !Task.IMPACT_ANALYSIS.equals(newStatus)) {
 				//coding task
 				if(task.isCodingTask()) {
 					if(task.getTag() == null || task.getRepositoryProjectBranch().isEmpty() || task.getTimeEstimate() == 0 || task.getCompletionDateEst() == null || task.getOwners().isEmpty()) {
@@ -180,7 +179,7 @@ public class BoardController {
 					}
 				}
 				//non-coding task
-				else {
+				else if(!task.isCodingTask()) {
 					if(task.getTag() == null) {
 						missingFields += "\nTag";
 					}
@@ -195,12 +194,15 @@ public class BoardController {
 					}
 				}
 			}
+			//enforce impact analysis (if appropriate)
+			if(task.isCodingTask() && !Task.IMPACT_ANALYSIS.equals(newStatus) && !Task.NOT_STARTED.equals(newStatus)) {
+				if(task.getImpactedFiles() == null || task.getImpactedFiles().isEmpty()) {
+					missingFields += "\nImpacted files must be identified";
+				}
+			}
 			//enforce commit (if appropriate)
             if(Task.COMPLETED.equals(newStatus) && task.isCodingTask()) {
-                if(task.getRepositoryCommits() == null || task.getRepositoryCommits().isEmpty()) {
-					missingFields += "\nCommit";
-                }
-                else if(!impactedFilesMatchRepository(task)) {
+                if(!impactedFilesMatchRepository(task)) {
 					missingFields += "\nImpacted files must match repository";
 				}
             }
@@ -347,37 +349,6 @@ public class BoardController {
 	    	task.setRepositoryProjectBranch(newBranch);
 	    	addTaskChange(taskHistory, "Branch", currentBranch, newBranch);
 	    }
-	    
-	    //update commit (if changed)
-		boolean foundCommitChange = false;
-	    List<String> currentCommits = task.getRepositoryCommits();
-	    List<String> savedCommits = new ArrayList<String>(currentCommits);
-	    String newCommits = allRequestParams.get("commits");
-	    List<String> commitList = null;
-	    if(newCommits != null && !newCommits.isEmpty()) {
-			String[] commitArray = newCommits.split(",");
-			commitList = Arrays.asList(commitArray);
-
-			//identify presence of commit changes
-			if (currentCommits.size() != commitList.size()) {
-				foundCommitChange = true;
-			}
-			currentCommits.removeAll(commitList);
-			if (!currentCommits.isEmpty()) {
-				foundCommitChange = true;
-			}
-		}
-	    //if commits were removed
-		else if(currentCommits != null && !currentCommits.isEmpty()){
-			foundCommitChange = true;
-		}
-		//if commits were changed
-		if (foundCommitChange) {
-			foundChange = true;
-			currentCommits.clear();
-			currentCommits.addAll(commitList);
-			addTaskChange(taskHistory, "Commits", savedCommits.toString(), commitList.toString());
-		}
 	    
 	    //update timeEstimate (if changed)
 	    Double currentTimeEstimate = task.getTimeEstimate();
@@ -833,43 +804,6 @@ public class BoardController {
 		return result;
 	}
 	
-	@ResponseBody
-	@RequestMapping(value = "/board/commits/{projectId}/**", method = RequestMethod.POST, produces = "application/json")
-	public String getBranchCommits(HttpServletRequest request, @PathVariable("projectId") String projectIdStr) {
-		ObjectMapper mapper = new ObjectMapper();
-		String result = "";
-		
-		try {
-			int projectId = Integer.parseInt(projectIdStr);
-			ProjectDao projectDao = new ProjectDao();
-			Project project = projectDao.getProject(projectId);
-
-			// check to see if the user belongs to the project
-			if (!UserDao.loggedIn(request) || !userHasProjectAccess(project, request)) {
-				return result;
-			}
-			
-			String branch = getBranchNameFromPath(request, "/board/commits/"+projectIdStr+"/");
-			RepositoryHost repositoryHost = project.getRepositoryProject().getRepositoryHost();
-			List<RepositoryProjectBranchCommit> commits = repositoryHost.retrieveProjectBranchCommitsFromRepository(project.getRepositoryProject(), branch);
-			
-			try {
-				result = mapper.writeValueAsString(commits);
-			} catch (JsonProcessingException e) {
-				e.printStackTrace();
-			}
-		} catch(NumberFormatException nfe) {
-			nfe.printStackTrace();
-		}
-		return result;
-	}
-	
-	private String getBranchNameFromPath(HttpServletRequest request, String path) {
-		String fullPath = (String) request.getAttribute(HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE);
-		String branch = fullPath.replace(path, "");
-		return branch;
-	}
-	
 	private void addTaskChange(TaskHistory taskHistory, String field, String oldValue, String updatedValue) {
 		  TaskChange taskChange = new TaskChange(field, oldValue, updatedValue);
 		  taskHistory.getChangedValueList().add(taskChange);
@@ -918,12 +852,13 @@ public class BoardController {
 
 	private boolean impactedFilesMatchRepository(Task task) {
 		Project project = task.getProject();
+		Cycle cycle = task.getBoard().getCycle();
 		RepositoryProject repositoryProject = project.getRepositoryProject();
 		RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
 
 		List<ImpactedProjectFile> impactedProjectFiles = task.getImpactedFiles();
 		//make copy of task's repository commits to modify when determining impacted files match
-		List<String> selectedCommitIds = new ArrayList(task.getRepositoryCommits());
+		List<Commit> cycleCommits = repositoryHost.retrieveCommitsFromRepository(repositoryProject, task.getRepositoryProjectBranch(), cycle.getStartDate(), cycle.getEndDate());
 		List<String> impactedProjectFilePaths = new ArrayList<String>();
 		List<String> impactedProjectFilePathsCopy = new ArrayList<String>();
 
@@ -934,12 +869,12 @@ public class BoardController {
 		}
 
 		//don't evaluate reverted commits when comparing changes with impacted files
-		handleReverts(selectedCommitIds, repositoryProject, task);
+		handleReverts(cycleCommits);
 
 		//all files modified/deleted in an identified commit must be present in impactedFiles
 		//for each identified commit
-		for(String commitId: selectedCommitIds) {
-			List<String> modifiedFilesFromRepository = repositoryHost.retrieveModifiedFilesFromRepositoryCommit(repositoryProject, commitId);
+		for(Commit commit: cycleCommits) {
+			List<String> modifiedFilesFromRepository = repositoryHost.retrieveModifiedFilesFromRepositoryCommit(repositoryProject, commit.getCommitId());
 			//for each modified/deleted file in a commit
 			for (String modifiedRepositoryFile : modifiedFilesFromRepository) {
 				//if modified/deleted commit file isn't in impacted files list
@@ -956,46 +891,28 @@ public class BoardController {
 		return impactedProjectFilePathsCopy.isEmpty();
 	}
 
-	private RepositoryProjectBranchCommit getSelectedCommit(String selectedCommitId, List<RepositoryProjectBranchCommit> repositoryProjectBranchCommits) {
-		for(RepositoryProjectBranchCommit commit: repositoryProjectBranchCommits) {
-			if(commit.getCommitId().equals(selectedCommitId)) {
-				return commit;
-			}
-		}
-		return null;
-	}
-
-	private void removeRevertedCommitId(String revertedCommitId, List<String> selectedCommitIds) {
-		String selectedCommitId;
-		for(Iterator<String> selectedCommitIdItr = selectedCommitIds.iterator(); selectedCommitIdItr.hasNext();) {
-			selectedCommitId=selectedCommitIdItr.next();
-			if(revertedCommitId.startsWith(selectedCommitId)) {
-				selectedCommitIdItr.remove();
-				break;
-			}
-		}
-	}
-
-	private void handleReverts(List<String> selectedCommitIds, RepositoryProject repositoryProject, Task task) {
-		RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
-
-		//loop through SELECTED commits and if one of those is a revert, then remove it and referenced commit
-		List<RepositoryProjectBranchCommit> allBranchCommits = repositoryHost.retrieveProjectBranchCommitsFromRepository(repositoryProject, task.getRepositoryProjectBranch());
+	private void handleReverts(List<Commit> cycleCommits) {
+		//loop through cycle commits and if one of those is a revert, then remove it and referenced commit
 		List<String> revertedCommitIds = new ArrayList<>();
-		RepositoryProjectBranchCommit selectedCommit;
-
-		for(Iterator<String> commitIdItr = selectedCommitIds.iterator(); commitIdItr.hasNext();) {
-			selectedCommit = getSelectedCommit(commitIdItr.next(), allBranchCommits);
-			if(selectedCommit != null && selectedCommit.isRevert()) {
+		Commit commit;
+		for(Iterator<Commit> commitItr = cycleCommits.iterator(); commitItr.hasNext();) {
+			commit = commitItr.next();
+			if(commit.isRevert()) {
 				//remove commit from list to compare with impacted files
-				commitIdItr.remove();
-				//add reverted commit id to list for removal (avoid ConcurrentModificationException)
-				revertedCommitIds.add(selectedCommit.getRevertedCommitId());
+				commitItr.remove();
+				//add reverted commit to list for removal (avoid ConcurrentModificationException)
+				revertedCommitIds.add(commit.getRevertedCommitId());
 			}
 		}
-		//remove all reverted commitIds
+		//remove all reverted commits
 		for(String revertedCommitId: revertedCommitIds) {
-			removeRevertedCommitId(revertedCommitId, selectedCommitIds);
+			for(Iterator<Commit> commitItr = cycleCommits.iterator(); commitItr.hasNext();) {
+				commit = commitItr.next();
+				if(commit.getCommitId().startsWith(revertedCommitId)) {
+					commitItr.remove();
+					break;
+				}
+			}
 		}
 	}
 }

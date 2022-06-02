@@ -5,14 +5,11 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 
 import coop.model.*;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
-import coop.model.repository.RepositoryProjectBranchCommit;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -22,7 +19,6 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import coop.dao.ProjectDao;
 import coop.dao.CycleDao;
 import coop.dao.UserDao;
-import coop.dao.StatsDao;
 import coop.util.CoOpUtil;
 
 @Controller
@@ -64,7 +60,7 @@ public class CycleController {
 			request.setAttribute("endDateStr", displayDateFormat.format(cycle.getEndDate()));
 			request.setAttribute("cycleStatsMap", cycleStatsMap);
 			request.setAttribute("projectUrl", projectUrl);
-			request.setAttribute("repositoryProjectBranches", repositoryHost.retrieveProjectBranchesFromRepository(repositoryProject));
+			request.setAttribute("repositoryProjectBranches", repositoryHost.retrieveBranchesFromRepository(repositoryProject));
 
 			return "cycle/viewCycle";
 		} else {

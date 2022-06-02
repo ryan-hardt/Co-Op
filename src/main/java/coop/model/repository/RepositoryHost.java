@@ -1,16 +1,11 @@
 package coop.model.repository;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import coop.model.User;
 import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
 import javax.persistence.*;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 @Entity
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
@@ -97,10 +92,10 @@ public abstract class RepositoryHost {
 
     public abstract RepositoryProject retrieveProjectFromRepository(String repositoryProjectUrl);
     public abstract List<RepositoryProject> retrieveProjectsFromRepository();
-    public abstract List<String> retrieveProjectBranchesFromRepository(RepositoryProject repositoryProject);
-    public abstract List<RepositoryProjectBranchCommit> retrieveProjectBranchCommitsFromRepository(RepositoryProject repositoryProject, String branchName);
+    public abstract List<String> retrieveBranchesFromRepository(RepositoryProject repositoryProject);
+    public abstract List<Commit> retrieveCommitsFromRepository(RepositoryProject repositoryProject, String branchName, Date startDate, Date endDate);
 
-    public abstract RepositoryProjectBranchCommit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId);
+    public abstract Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId);
 
     public abstract Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName);
     public abstract List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId);

@@ -1,5 +1,6 @@
 <%@ taglib prefix = "c" uri = "http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="t" tagdir="/WEB-INF/tags"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt" %>
 <t:cardlessLayout>
 	<jsp:attribute name="title">
 		${project.getName()}
@@ -146,21 +147,31 @@
 												</div>
 												<div class="mr-5">
 													<h3>${userStats.key}</h3>
+													<c:if test="${userStats.value.isEmpty()}">
+														<br/>
+														<h5>No work reported</h5>
+													</c:if>
+													<c:if test="${not userStats.value.isEmpty()}">
 													<div>
 														<canvas id="user${userStats.key.id}Canvas-Role"></canvas>
 													</div>
 													<div>
 														<canvas id="user${userStats.key.id}Canvas-Tag"></canvas>
 													</div>
+													</c:if>
+													<br/>
+													<h4>Commits</h4>
+													<c:if test="${userStats.value.allCommits.size() eq 0}">
+													<br/>
+													<h5>No commits found</h5>
+													</c:if>
 													<c:if test="${userStats.value.allCommits.size() gt 0}">
-														<br/>
-														<h5>Commits</h5>
-														<c:forEach items="${userStats.value.allCommits}" var="commit">
-															<hr/>
-															<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
-															Added: ${commit.numLinesAdded} Deleted: ${commit.numLinesDeleted}<br/>
-															<fmt:formatDate type="both" timeStyle="short" value="${commit.committedDate}"/><br/>
-														</c:forEach>
+													<c:forEach items="${userStats.value.allCommits}" var="commit">
+													<hr/>
+													<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
+													Added: ${commit.numLinesAdded} Deleted: ${commit.numLinesDeleted}<br/>
+													<fmt:formatDate type="both" timeStyle="short" value="${commit.committedDate}"/><br/>
+													</c:forEach>
 													</c:if>
 												</div>
 											</div>

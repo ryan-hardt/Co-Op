@@ -117,12 +117,6 @@
 									</c:forEach>
 								</select>
 							</div>
-							<div id="commitsField" class="form-group">
-								<label for="commitTable">Commits</label>
-								<input type="hidden" name="commits" value=""/>
-								<table id="commitTable" class="form-control multiSelectBox">
-								</table>
-							</div>
 							<div class="form-group">
 								<label for="fmtCompletionDateEst">Estimated Completion Date</label>
 								<input type="datetime" class="form-control" id="fmtCompletionDateEst" name="fmtCompletionDateEst" value="" placeholder="MM/DD/YYYY" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>>
@@ -153,15 +147,6 @@
 						<div id="impact-form-container">
 							<form id="addImpactForm" name="addImpactForm" method="post" onsubmit="return false;">
 								<input type="hidden" id="repositoryProjectId" name="repositoryProjectId" value="${repositoryProjectId}">
-								<div id="branch" class="form-group">
-									<label for="impactBranchName">Branch</label>
-									<select class="form-control" id="impactBranchName" name="impactBranchName" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>>
-										<option value="">Choose a branch...</option>
-										<c:forEach var="repositoryProjectBranch" items="${repositoryProjectBranches}">
-											<option value="${repositoryProjectBranch}">${repositoryProjectBranch}</option>
-										</c:forEach>
-									</select>
-								</div>
 								<div id="filesLoading">
 									<i class="fa fa-circle-o-notch fa-spin fa-1x fa-fw"></i>
 									<span class="sr-only">Loading...</span>

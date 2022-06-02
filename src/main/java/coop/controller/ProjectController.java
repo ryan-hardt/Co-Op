@@ -8,7 +8,6 @@ import coop.dao.*;
 import coop.model.*;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
-import coop.model.repository.RepositoryProjectBranchCommit;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.ui.ModelMap;

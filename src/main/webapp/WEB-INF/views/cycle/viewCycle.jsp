@@ -81,15 +81,25 @@
 									</div>
 									<div class="mr-5">
 										<h3>${userStats.key}</h3>
+										<c:if test="${userStats.value.isEmpty()}">
+											<br/>
+											<h5>No work reported</h5>
+										</c:if>
+										<c:if test="${not userStats.value.isEmpty()}">
 										<div>
 											<canvas id="user${userStats.key.id}Canvas-Role"></canvas>
 										</div>
 										<div>
 											<canvas id="user${userStats.key.id}Canvas-Tag"></canvas>
 										</div>
-										<c:if test="${userStats.value.allCommits.size() gt 0}">
+										</c:if>
 										<br/>
-										<h5>Commits</h5>
+										<h4>Commits</h4>
+										<c:if test="${userStats.value.allCommits.size() eq 0}">
+										<br/>
+										<h5>No commits found</h5>
+										</c:if>
+										<c:if test="${userStats.value.allCommits.size() gt 0}">
 										<c:forEach items="${userStats.value.allCommits}" var="commit">
 										<hr/>
 										<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>

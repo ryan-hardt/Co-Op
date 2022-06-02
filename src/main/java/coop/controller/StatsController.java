@@ -1,28 +1,19 @@
 package coop.controller;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import javax.servlet.http.HttpServletRequest;
 
 import coop.model.*;
 import coop.model.repository.RepositoryHost;
-import coop.model.repository.RepositoryProjectBranchCommit;
+import coop.model.repository.Commit;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import coop.dao.ProjectDao;
 import coop.dao.CycleDao;
@@ -232,10 +223,10 @@ public class StatsController {
 			userStatsMap.put(cycleUser, new UserStats());
 		}
 		List<Task> cycleTasks = cycle.getBoard().getTasks();
-		Set<RepositoryProjectBranchCommit> selectedCommitSet = new HashSet<>();
+		Set<Commit> userCommits = new HashSet<>();
 
 		for(Task task: cycleTasks) {
-			updateCommitStats(userStatsMap, selectedCommitSet, task);
+			updateCommitStats(userStatsMap, userCommits, task);
 			updateWorkStats(userStatsMap, task);
 		}
 
@@ -247,12 +238,14 @@ public class StatsController {
 		for(User projectUser: project.getUsers()) {
 			userStatsMap.put(projectUser, new UserStats());
 		}
-		for(Cycle cycle: project.getCycles()) {
+		List<Cycle> cycles = new ArrayList<>(project.getCycles());
+		Collections.reverse(cycles);
+		for(Cycle cycle: cycles) {
 			List<Task> cycleTasks = cycle.getBoard().getTasks();
-			Set<RepositoryProjectBranchCommit> selectedCommitSet = new HashSet<>();
+			Set<Commit> userCommits = new HashSet<>();
 
 			for(Task task: cycleTasks) {
-				updateCommitStats(userStatsMap, selectedCommitSet, task);
+				updateCommitStats(userStatsMap, userCommits, task);
 				updateWorkStats(userStatsMap, task);
 			}
 		}
@@ -264,29 +257,27 @@ public class StatsController {
 	Commit-related notes
 	A student's name *as recognized by git* must match that in Co-Op.
 	*This can be configured on a project-by-project (repo-by-repo) basis*
-	If a student pushes a commit, it should be recognized in a Co-Op task (with the branch identified as well).
+	If a student pushes a commit, it should be recognized in a Co-Op task (within the identified branch).
 	If that commit was merged into the team branch, that same commit should show up under that branch.
-	Only commits selected within a task contribute to the stats.
 	 */
-	private static void updateCommitStats(Map<User, UserStats> cycleStatsMap, Set<RepositoryProjectBranchCommit> selectedCommitSet, Task task) {
+	private static void updateCommitStats(Map<User, UserStats> cycleStatsMap, Set<Commit> userCommits, Task task) {
 		Cycle cycle = task.getBoard().getCycle();
 		String teamBranchName = cycle.getCycleTeamBranchName();
 		Project project = cycle.getProject();
 		RepositoryHost projectRepository = project.getRepository();
 		String taskBranch = task.getRepositoryProjectBranch();
 		if(taskBranch != null && !taskBranch.isEmpty()) {
-			for(String selectedCommitId: task.getRepositoryCommits()) {
-				RepositoryProjectBranchCommit selectedCommit = projectRepository.retrieveCommitFromRepository(project.getRepositoryProject(), selectedCommitId);
-				if (selectedCommit != null && !selectedCommitSet.contains(selectedCommit)) {
-					User committer = project.getProjectUserWithName(selectedCommit.getCommitterName());
+			for(Commit cycleCommit: projectRepository.retrieveCommitsFromRepository(project.getRepositoryProject(), taskBranch, cycle.getStartDate(), cycle.getEndDate())) {
+				if (cycleCommit != null && !userCommits.contains(cycleCommit)) {
+					User committer = project.getProjectUserWithName(cycleCommit.getCommitterName());
 					if (committer != null) {
 						UserStats userStats = cycleStatsMap.get(committer);
-						userStats.addCommit(selectedCommit);
+						userStats.addCommit(cycleCommit);
 						if (teamBranchName != null && teamBranchName.equals(taskBranch)) {
-							userStats.addMergedCommit(selectedCommit);
+							userStats.addMergedCommit(cycleCommit);
 						}
 					}
-					selectedCommitSet.add(selectedCommit);
+					userCommits.add(cycleCommit);
 				}
 			}
 		}
