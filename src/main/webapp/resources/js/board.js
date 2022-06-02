@@ -182,11 +182,17 @@ $(function() {
 	
 	$('#submit-task-users-btn').click(function () {
 		let error = true;
+		let isAssigningUser = false;
 		//cycle board
 		if(document.taskUsersUpdateForm.isCycleBoard.value == 'true') {
 			$("[name^=users-]").each(function() {
 				if($(this).is(':checked') && $(this).attr("id").endsWith("owner")) {
 					error = false;
+				}
+				//if current user is being assigned to task
+				let currentUserId = $("#userId").attr("value");
+				if($(this).is(':checked') && $(this).attr("id").startsWith(currentUserId+"-") && $(this).attr("value") !== "None") {
+					isAssigningUser = true;
 				}
 			});
 			if(error) {
@@ -204,6 +210,11 @@ $(function() {
 						success: (data,status) => {
 							displaySuccess("Task update successful!");
 							refreshBoard();
+							//if current user is assigned to task, allow work to be added
+							if(isAssigningUser) {
+								isUserAssignedToTask = true;
+								$("#add-work-btn").show();
+							}
 						},
 						error: () => {
 							console.log("error when updating task users");
@@ -1273,23 +1284,27 @@ function drop(ev) {
 		let elementRect = containingElement.getBoundingClientRect();
 		let dropY = ev.clientY;
 		let midCardY = elementRect.top + ((elementRect.bottom - elementRect.top)/2);
-		//dropped card should be placed above this card
-		if(dropY < midCardY) {
-			//update status and priority
-			let priority = containingElement.card.priority;
-			currentDraggedCard.card.updateStatus(containingElement.card.status, priority);
-		} 
-		//dropped card should be placed below this card
-		else {
-			let parent = containingElement;
-			while(parent.className.indexOf('column-body') == -1) {
-				parent = parent.parentElement;
+		//as long as the card wasn't dropped on itself
+		if(containingElement !== currentDraggedCard) {
+			//dropped card should be placed above this card
+			if(dropY < midCardY) {
+				//update status and priority
+				let priority = containingElement.card.priority;
+				currentDraggedCard.card.updateStatus(containingElement.card.status, priority);
 			}
-			let priority = containingElement.card.priority;
-			let newPriority = ((priority+1)<parent.column.cards.length)?priority+1:parent.column.cards.length;
-			//update status and priority
-			currentDraggedCard.card.updateStatus(containingElement.card.status, newPriority);
+			//dropped card should be placed below this card
+			else {
+				let parent = containingElement;
+				while(parent.className.indexOf('column-body') == -1) {
+					parent = parent.parentElement;
+				}
+				let priority = containingElement.card.priority;
+				let newPriority = ((priority+1)<parent.column.cards.length)?priority+1:parent.column.cards.length;
+				//update status and priority
+				currentDraggedCard.card.updateStatus(containingElement.card.status, newPriority);
+			}
 		}
+
 	} 
 	//if card was dropped on a column
 	else {
@@ -1298,8 +1313,8 @@ function drop(ev) {
 		if(column.cards.length == 0) {
 			currentDraggedCard.card.updateStatus(column.name, 1);
 		}
-		//if column has cards
-		else {
+		//as long as card isn't dropped into current column and is already the bottom card
+		else if(currentDraggedCard.card.status !== column.name && currentDraggedCard.card.priority !== column.cards.length) {
 			let dropY = ev.clientY;
 			let priorBottomY = 0;
 			let dropped = false;
