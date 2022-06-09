@@ -3,12 +3,17 @@
  */
 
 $(document).ready(function() {
-	$("#startdate").datepicker({
-		dateFormat: "mm/dd/yy"
-	});
-	$("#enddate").datepicker({
-		dateFormat: "mm/dd/yy"
-	});
+	if($("#startdate").length) {
+		$("#startdate").datepicker({
+			dateFormat: "mm/dd/yy"
+		});
+		$("#enddate").datepicker({
+			dateFormat: "mm/dd/yy"
+		});
+	}
+	if($('[data-toggle="popover"]').length) {
+		$('[data-toggle="popover"]').popover();
+	}
 });
 
 document.addEventListener("DOMContentLoaded", () => {

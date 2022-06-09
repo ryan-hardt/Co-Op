@@ -168,7 +168,7 @@
 													<c:if test="${userStats.value.allCommits.size() gt 0}">
 													<c:forEach items="${userStats.value.allCommits}" var="commit">
 													<hr/>
-													<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
+													<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${commitBaseUrl}/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
 													Added: ${commit.numLinesAdded} Deleted: ${commit.numLinesDeleted}<br/>
 													<fmt:formatDate type="both" timeStyle="short" value="${commit.committedDate}"/><br/>
 													</c:forEach>

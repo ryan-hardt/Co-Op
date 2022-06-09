@@ -202,8 +202,9 @@ public class BoardController {
 			}
 			//enforce commit (if appropriate)
             if(Task.COMPLETED.equals(newStatus) && task.isCodingTask()) {
-                if(!impactedFilesMatchRepository(task)) {
-					missingFields += "\nImpacted files must match repository";
+				String impactedFilesMismatchDescription = impactedFilesMatchRepository(task);
+                if(impactedFilesMismatchDescription != null && !impactedFilesMismatchDescription.isEmpty()) {
+					missingFields += "\n"+impactedFilesMismatchDescription;
 				}
             }
 
@@ -566,9 +567,9 @@ public class BoardController {
 				}
 			}
 			if(foundChange) {
+				addTaskChange(taskHistory, "impacted files", currentlyImpactedFiles.toString(), task.getImpactedFiles().toString());
 				if(taskDao.updateTask(task)) {
 					//add task history
-					addTaskChange(taskHistory, "impacted files", currentlyImpactedFiles.toString(), task.getImpactedFiles().toString());
 					insertTaskHistory(taskHistory, task, UserDao.getUserFromSession(request));
 				}
 				//update user session
@@ -901,7 +902,7 @@ public class BoardController {
 		return project != null && user.getIsActive() == 1 && project.getUsers().contains(user);
 	}
 
-	private boolean impactedFilesMatchRepository(Task task) {
+	private String impactedFilesMatchRepository(Task task) {
 		Project project = task.getProject();
 		Cycle cycle = task.getBoard().getCycle();
 		RepositoryProject repositoryProject = project.getRepositoryProject();
@@ -910,8 +911,19 @@ public class BoardController {
 		List<ImpactedProjectFile> impactedProjectFiles = task.getImpactedFiles();
 		//make copy of task's repository commits to modify when determining impacted files match
 		List<Commit> cycleCommits = repositoryHost.retrieveCommitsFromRepository(repositoryProject, task.getRepositoryProjectBranch(), cycle.getStartDate(), cycle.getEndDate());
+
+		//sort commits from earliest to latest to allow added files to be recognized before their possible modifications
+		Comparator<Commit> orderByDateAsc = new Comparator<Commit>() {
+			@Override
+			public int compare(Commit o1, Commit o2) {
+				return o1.getCommittedDate().compareTo(o2.getCommittedDate());
+			}
+		};
+		Collections.sort(cycleCommits, orderByDateAsc);
+
 		List<String> impactedProjectFilePaths = new ArrayList<String>();
 		List<String> impactedProjectFilePathsCopy = new ArrayList<String>();
+		List<String> repoChangesMissingFromImpactedFiles = new ArrayList<>();
 
 		//generate list of impactedProjectFilePaths
 		for (ImpactedProjectFile impactedProjectFile : impactedProjectFiles) {
@@ -922,24 +934,40 @@ public class BoardController {
 		//don't evaluate reverted commits when comparing changes with impacted files
 		handleReverts(cycleCommits);
 
-		//all files modified/deleted in an identified commit must be present in impactedFiles
-		//for each identified commit
+		//all files modified/deleted in all commits during the cycle must be present in impactedFiles
+
+		Set<String> addedFiles = new HashSet<>();
+		List<String> modifiedFiles = new ArrayList<>();
+		//create set of all files changed during the cycle
 		for(Commit commit: cycleCommits) {
-			List<String> modifiedFilesFromRepository = repositoryHost.retrieveModifiedFilesFromRepositoryCommit(repositoryProject, commit.getCommitId());
-			//for each modified/deleted file in a commit
-			for (String modifiedRepositoryFile : modifiedFilesFromRepository) {
-				//if modified/deleted commit file isn't in impacted files list
-				if(!impactedProjectFilePaths.contains(modifiedRepositoryFile)) {
-					return false;
-				} else {
-					//can't remove from impactedProjectFilePaths because another commit may have modified the same impacted file
-					impactedProjectFilePathsCopy.remove(modifiedRepositoryFile);
-				}
+			List<String> modifiedFilesFromRepository = repositoryHost.retrieveModifiedFilesFromRepositoryCommit(repositoryProject, commit.getCommitId(), addedFiles);
+			modifiedFiles.addAll(modifiedFilesFromRepository);
+		}
+
+		//for each modified/deleted file in all commits made during the cycle
+		for(String modifiedFile: modifiedFiles) {
+			//if modified/deleted commit file isn't in impacted files list
+			if(!impactedProjectFilePaths.contains(modifiedFile)) {
+				repoChangesMissingFromImpactedFiles.add(modifiedFile);
+			} else {
+				//can't remove from impactedProjectFilePaths because another commit may have modified the same impacted file
+				impactedProjectFilePathsCopy.remove(modifiedFile);
 			}
 		}
 
-		//all impactedFiles must be present in some commit
-		return impactedProjectFilePathsCopy.isEmpty();
+		//if repo changes match impacted file list
+		if(repoChangesMissingFromImpactedFiles.isEmpty() && impactedProjectFilePathsCopy.isEmpty()) {
+			return null;
+		} else {
+			String impactedFileErrorMsg = "";
+			for(String missingRepoChange: repoChangesMissingFromImpactedFiles) {
+				impactedFileErrorMsg += "\n" + missingRepoChange + " missing from impacted file list";
+			}
+			for(String extraImpactedFile: impactedProjectFilePathsCopy) {
+				impactedFileErrorMsg += "\n" + extraImpactedFile + " not modified in repository";
+			}
+			return impactedFileErrorMsg;
+		}
 	}
 
 	private void handleReverts(List<Commit> cycleCommits) {

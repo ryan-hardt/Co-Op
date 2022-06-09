@@ -52,14 +52,14 @@ public class CycleController {
 			Project project = cycle.getProject();
 			RepositoryProject repositoryProject = project.getRepositoryProject();
 			RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
-			String projectUrl = repositoryProject.getRepositoryProjectUrl();
+			String commitBaseUrl = repositoryProject.getCommitBaseUrl();
 			
 			request.setAttribute("cycle", cycle);
 			request.setAttribute("cycleNumber", CoOpUtil.getCycleNumber(cycle));
 			request.setAttribute("startDateStr", displayDateFormat.format(cycle.getStartDate()));
 			request.setAttribute("endDateStr", displayDateFormat.format(cycle.getEndDate()));
 			request.setAttribute("cycleStatsMap", cycleStatsMap);
-			request.setAttribute("projectUrl", projectUrl);
+			request.setAttribute("commitBaseUrl", commitBaseUrl);
 			request.setAttribute("repositoryProjectBranches", repositoryHost.retrieveBranchesFromRepository(repositoryProject));
 
 			return "cycle/viewCycle";

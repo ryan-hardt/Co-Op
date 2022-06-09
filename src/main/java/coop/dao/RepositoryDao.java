@@ -1,14 +1,10 @@
 package coop.dao;
 
-import coop.model.User;
 import coop.model.repository.RepositoryHost;
 import coop.model.repository.RepositoryProject;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-
-import javax.persistence.criteria.CriteriaQuery;
-import java.util.List;
 
 public class RepositoryDao extends HibernateDao {
     public boolean insert(RepositoryHost repositoryHost) {
@@ -22,7 +18,7 @@ public class RepositoryDao extends HibernateDao {
 
         try {
             transaction = session.beginTransaction();
-            repositoryHost.setId((Integer)(session.save(repositoryHost)));
+            session.persist(repositoryHost);
             transaction.commit();
             if (repositoryHost.getId() != null) {
                 hasWorked = true;
@@ -83,26 +79,5 @@ public class RepositoryDao extends HibernateDao {
         }
 
         return repositoryProject;
-    }
-
-    public List<RepositoryHost> getAllRepositories() {
-        Session session = sessionFactory.openSession();
-        Transaction transaction = null;
-        List<RepositoryHost> repositories = null;
-        try {
-            transaction = session.beginTransaction();
-            CriteriaQuery<RepositoryHost> criteria = session.getCriteriaBuilder().createQuery(RepositoryHost.class);
-            criteria.from(RepositoryHost.class);
-            repositories = session.createQuery(criteria).getResultList();
-            transaction.commit();
-        } catch (HibernateException e) {
-            if (transaction != null) {
-                transaction.rollback();
-            }
-            e.printStackTrace();
-        } finally {
-            session.close();
-        }
-        return repositories;
     }
 }

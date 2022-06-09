@@ -1,13 +1,11 @@
 package coop.dao;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import coop.model.Board;
 import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
-import org.hibernate.query.Query;
 import coop.model.Task;
 
 public class BoardDao extends HibernateDao {
@@ -62,7 +60,7 @@ public class BoardDao extends HibernateDao {
 
     try {
       transaction = session.beginTransaction();
-      session.update(board);
+      session.merge(board);
       transaction.commit();
       //session.flush();
       hasWorked = true;
@@ -88,7 +86,7 @@ public class BoardDao extends HibernateDao {
 
     try {
       transaction = session.beginTransaction();
-      session.delete(board);
+      session.remove(board);
       transaction.commit();
       //session.flush();
       hasWorked = true;
@@ -125,29 +123,5 @@ public class BoardDao extends HibernateDao {
 
     return board;
   }
-
-
-
-  @SuppressWarnings("unchecked")
-public List<Board> getAllBoards(){
-    Session session = sessionFactory.openSession();
-    Transaction transaction = null;
-    List<Board> boards = null;
-    try {
-      transaction = session.beginTransaction();
-      Query<Board> query = session.createQuery("From Board");
-      boards = query.list();
-      transaction.commit();
-    } catch (HibernateException e) {
-      if (transaction != null) {
-        transaction.rollback();
-      }
-    } finally {
-      session.close();
-    }
-
-    return boards;
-  }
-  
 }
 

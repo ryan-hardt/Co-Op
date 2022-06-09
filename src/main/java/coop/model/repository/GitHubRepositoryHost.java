@@ -7,8 +7,8 @@ import org.eclipse.egit.github.core.service.CommitService;
 import org.eclipse.egit.github.core.service.ContentsService;
 import org.eclipse.egit.github.core.service.RepositoryService;
 
-import javax.persistence.Entity;
-import javax.persistence.Transient;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Transient;
 import java.io.IOException;
 import java.util.*;
 
@@ -90,19 +90,21 @@ public class GitHubRepositoryHost extends RepositoryHost {
             for(RepositoryCommit repositoryCommit: commitService.getCommits(gitHubRepository, branchName, null)) {
                 String commitId = repositoryCommit.getSha();
                 String commitMessage = repositoryCommit.getCommit().getMessage();
-                String committerName = repositoryCommit.getCommitter().getName();
-                List<CommitStatus> commitStatuses = commitService.getStatuses(gitHubRepository, commitId);
-                Date commitDate = null;
-                for(CommitStatus commitStatus: commitStatuses) {
-                    if(commitStatus.getCreatedAt() != null) {
-                        //umm sure
-                        commitDate = commitStatus.getCreatedAt();
-                        break;
+                String committerName = repositoryCommit.getCommit().getAuthor().getName();
+                Date commitDate = repositoryCommit.getCommit().getCommitter().getDate();
+
+                if(commitDate != null && (startDate == null || commitDate.after(startDate)) && (endDate == null || commitDate.before(endDate))) {
+                    //this service method retrieves modified files for the commit
+                    repositoryCommit = commitService.getCommit(gitHubRepository, commitId);
+                    int numAdditions = 0;
+                    int numDeletions = 0;
+                    for(CommitFile modifiedFile: repositoryCommit.getFiles()) {
+                        numAdditions += modifiedFile.getAdditions();
+                        numDeletions += modifiedFile.getDeletions();
                     }
+                    Commit commit = new Commit(commitId, commitMessage, committerName, commitDate, numAdditions, numDeletions);
+                    commits.add(commit);
                 }
-                CommitStats commitStats = repositoryCommit.getStats();
-                Commit commit = new Commit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
-                commits.add(commit);
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,58 +112,39 @@ public class GitHubRepositoryHost extends RepositoryHost {
         return commits;
     }
 
-    //NOT TESTED
     @Override
-    public Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
-        establishConnection();
-        try {
-            Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
-            RepositoryCommit repositoryCommit = commitService.getCommit(gitHubRepository, commitId);
-            String commitMessage = repositoryCommit.getCommit().getMessage();
-            String committerName = repositoryCommit.getCommitter().getName();
-            List<CommitStatus> commitStatuses = commitService.getStatuses(gitHubRepository, commitId);
-            Date commitDate = null;
-            for(CommitStatus commitStatus: commitStatuses) {
-                if(commitStatus.getCreatedAt() != null) {
-                    //umm sure
-                    commitDate = commitStatus.getCreatedAt();
-                    break;
-                }
-            }
-            CommitStats commitStats = repositoryCommit.getStats();
-            return new Commit(commitId, commitMessage, committerName, commitDate, commitStats.getAdditions(), commitStats.getDeletions());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    public Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName) {
+    public Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName, Date untilDate) {
         Map<String, Set<String>> projectFiles = new TreeMap<String, Set<String>>();
         establishConnection();
         try {
             Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
-            processGitHubRepositoryTree(projectFiles, repositoryProject.getName(), repositoryProject.getName(), gitHubRepository, "");
+            String commitId = getLatestCommitIdBeforeDate(repositoryProject, branchName, untilDate);
+            processGitHubRepositoryTree(projectFiles, repositoryProject.getName(), repositoryProject.getName(), gitHubRepository, "", commitId);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return projectFiles;
     }
 
+
     @Override
-    public List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId) {
+    public List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId, Set<String> ignoredFiles) {
         List<String> modifiedFiles = new ArrayList<String>();
         establishConnection();
         try {
             Repository gitHubRepository = getGitHubRepository(repositoryService.getRepositories(), repositoryProject);
             RepositoryCommit repositoryCommit = commitService.getCommit(gitHubRepository, commitId);
             List<CommitFile> commitFiles = repositoryCommit.getFiles();
-            processGitHubCommitDiffs(modifiedFiles, commitFiles, repositoryProject.getName());
+            processGitHubCommitDiffs(modifiedFiles, commitFiles, repositoryProject.getName(), ignoredFiles);
         } catch (IOException e) {
             e.printStackTrace();
         }
         return modifiedFiles;
+    }
+
+    @Override
+    public String getCommitUrlPath() {
+        return "/commit";
     }
 
     private void establishConnection() {
@@ -184,18 +167,27 @@ public class GitHubRepositoryHost extends RepositoryHost {
         return null;
     }
 
-    private void processGitHubRepositoryTree(Map<String, Set<String>> projectFiles, String projectName, String parentKey, Repository gitHubRepository, String path) {
+    private String getLatestCommitIdBeforeDate(RepositoryProject repositoryProject, String branchName, Date date) {
+        List<Commit> commits = retrieveCommitsFromRepository(repositoryProject, branchName, null, date);
+        if(commits != null && !commits.isEmpty()) {
+            return commits.get(0).getCommitId();
+        } else {
+            return null;
+        }
+    }
+
+    private void processGitHubRepositoryTree(Map<String, Set<String>> projectFiles, String projectName, String parentKey, Repository gitHubRepository, String path, String commitId) {
         HashSet<String> files = new HashSet<String>();
         projectFiles.put(parentKey, files);
         String dirKey;
 
         try {
-            for(RepositoryContents repositoryContent : contentsService.getContents(gitHubRepository, path)) {
+            for(RepositoryContents repositoryContent : contentsService.getContents(gitHubRepository, path, commitId)) {
                 if(RepositoryContents.TYPE_DIR.equals(repositoryContent.getType())) {
                     dirKey = projectName + "/" + repositoryContent.getPath();
                     path = repositoryContent.getPath();
                     files.add(dirKey);
-                    processGitHubRepositoryTree(projectFiles, projectName, dirKey, gitHubRepository, path);
+                    processGitHubRepositoryTree(projectFiles, projectName, dirKey, gitHubRepository, path, commitId);
                 } else if(RepositoryContents.TYPE_FILE.equals(repositoryContent.getType())) {
                     files.add(repositoryContent.getName());
                 }
@@ -205,10 +197,16 @@ public class GitHubRepositoryHost extends RepositoryHost {
         }
     }
 
-    private void processGitHubCommitDiffs(List<String> modifiedFiles, List<CommitFile> commitFiles, String projectName) {
+    private void processGitHubCommitDiffs(List<String> modifiedFiles, List<CommitFile> commitFiles, String projectName, Set<String> ignoredFiles) {
         for(CommitFile commitFile : commitFiles) {
-            if(!commitFile.getStatus().equals("added") && !commitFile.getStatus().equals("renamed")) {
-                modifiedFiles.add(projectName + "/" + commitFile.getFilename());
+            String status = commitFile.getStatus();
+            String filePath = projectName + "/" + commitFile.getFilename();
+            if(ignoredFiles.contains(filePath)) {
+                modifiedFiles.remove(filePath); //remove if present
+            } else if(!status.equals("added") && !status.equals("renamed")) {
+                modifiedFiles.add(filePath);
+            } else if(status.equals("added")) {
+                ignoredFiles.add(filePath);
             }
         }
     }

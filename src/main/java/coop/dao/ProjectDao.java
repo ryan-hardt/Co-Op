@@ -48,7 +48,7 @@ public class ProjectDao extends HibernateDao {
 				RepositoryProject repositoryProject = userProject.getRepositoryProject();
 				if(repositoryProject != null) {
 					String repositoryProjectUrl = repositoryProject.getRepositoryProjectUrl();
-					Query<Project> query = session.createQuery("FROM Project WHERE repositoryProject.repositoryProjectUrl = :repositoryProjectUrl");
+					Query<Project> query = session.createQuery("FROM Project WHERE repositoryProject.repositoryProjectUrl = :repositoryProjectUrl", Project.class);
 					query.setParameter("repositoryProjectUrl", repositoryProjectUrl);
 					List<Project> projectList = query.list();
 					for(Project otherProject: projectList) {
@@ -77,8 +77,8 @@ public class ProjectDao extends HibernateDao {
 		Transaction insertProjectTransaction = null;
 		try {
 			insertProjectTransaction = session.beginTransaction();
-			session.saveOrUpdate(project.getRepositoryProject());
-			session.save(project);
+			session.persist(project.getRepositoryProject());
+			session.persist(project);
 			insertProjectTransaction.commit();
 			success = true;
 		} catch (HibernateException e) {
@@ -100,12 +100,12 @@ public class ProjectDao extends HibernateDao {
 
 		try {
 			deleteProjectTransaction = session.beginTransaction();
-			session.delete(project);
-			Query<Project> query = session.createQuery("FROM Project WHERE slackWorkspace = :slackWorkspace");
+			session.remove(project);
+			Query<Project> query = session.createQuery("FROM Project WHERE slackWorkspace = :slackWorkspace", Project.class);
 			query.setParameter("slackWorkspace", slackWorkspace);
 			List<Project> projectsWithWorkspace = query.list();
 			if(projectsWithWorkspace != null && !projectsWithWorkspace.isEmpty()) {
-				session.delete(slackWorkspace);
+				session.remove(slackWorkspace);
 			}
 			deleteProjectTransaction.commit();
 			success = true;
@@ -126,8 +126,8 @@ public class ProjectDao extends HibernateDao {
 		Transaction updateProjectTransaction = null; 
 		try {
 			updateProjectTransaction = session.beginTransaction();
-			session.saveOrUpdate(project.getRepositoryProject());
-			session.update(project);
+			session.merge(project.getRepositoryProject());
+			session.merge(project);
 			updateProjectTransaction.commit();
 			success = true;
 		} catch (HibernateException e) {

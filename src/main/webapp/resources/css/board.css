@@ -93,7 +93,7 @@
 div[class='card text-white task-card Research'] {
 	background: #F0CA4D !important;
 }
-div[class='card text-white task-card Feature Implementation'] {
+div[class='card text-white task-card Feature'] {
 	background: #46B29D !important;
 }
 div[class='card text-white task-card Unit Test'] {
@@ -127,7 +127,7 @@ div[class='card text-white task-card Other'] {
 div[class='card text-white product-task-card Research'] {
 	background: #F0CA4D !important;
 }
-div[class='card text-white product-task-card Feature Implementation'] {
+div[class='card text-white product-task-card Feature'] {
 	background: #46B29D !important;
 }
 div[class='card text-white product-task-card Unit Test'] {

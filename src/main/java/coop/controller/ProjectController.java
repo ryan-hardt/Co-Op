@@ -32,9 +32,10 @@ public class ProjectController {
 		Project project = pDao.getProject(id);
 		if(user != null) {
 			if(project != null) {
-				StatsDao workDao = new StatsDao();
 				List<User> projectUsers = project.getUsers();
 				List<User> owners = project.getOwners();
+				RepositoryProject repositoryProject = project.getRepositoryProject();
+				String commitBaseUrl = repositoryProject.getCommitBaseUrl();
 
 				//assumes all users have access to all projects
                 model.addAttribute("project", project);
@@ -48,6 +49,7 @@ public class ProjectController {
                 model.addAttribute("cycles", cycles);
                 model.addAttribute("users", projectUsers);
                 model.addAttribute("owners", owners);
+				model.addAttribute("commitBaseUrl", commitBaseUrl);
                 model.addAttribute("isProjectOwner", owners.contains(user));
                 model.addAttribute("slackRegistrationLink", SlackUtil.generateRegistrationLink(request, project.getId()));
 
@@ -57,6 +59,7 @@ public class ProjectController {
 					Map<User, UserStats> projectStatsMap = StatsController.generateProjectStats(project);
 					model.addAttribute("isMember", true);
 					model.addAttribute("projectStatsMap", projectStatsMap);
+
 				} else {
 			        /*
 					redirectAttributes.addFlashAttribute("error", "You do not have access to that project");

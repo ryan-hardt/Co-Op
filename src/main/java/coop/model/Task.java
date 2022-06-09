@@ -9,7 +9,7 @@ import java.util.ArrayList;
 	import org.hibernate.annotations.LazyCollection;
 	import org.hibernate.annotations.LazyCollectionOption;
 
-	import javax.persistence.*;
+	import jakarta.persistence.*;
 
 	import com.fasterxml.jackson.annotation.JsonIgnore;
 	
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 	  public static final String REVIEWER = "Reviewer";
 	  //tags
 	  public static final String RESEARCH = "Research";
-	  public static final String FEATURE = "Feature Implementation";
+	  public static final String FEATURE = "Feature";
 	  public static final String UNIT_TEST = "Unit Test";
 	  public static final String BUG_FIX = "Bug Fix";
 	  public static final String REFACTOR = "Refactor";

@@ -4,7 +4,7 @@ import org.hibernate.annotations.Cascade;
 import org.hibernate.annotations.LazyCollection;
 import org.hibernate.annotations.LazyCollectionOption;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 @Entity
@@ -94,11 +94,9 @@ public abstract class RepositoryHost {
     public abstract List<RepositoryProject> retrieveProjectsFromRepository();
     public abstract List<String> retrieveBranchesFromRepository(RepositoryProject repositoryProject);
     public abstract List<Commit> retrieveCommitsFromRepository(RepositoryProject repositoryProject, String branchName, Date startDate, Date endDate);
-
-    public abstract Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId);
-
-    public abstract Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName);
-    public abstract List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId);
+    public abstract Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName, Date untilDate);
+    public abstract List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId, Set<String> ignoreFiles);
+    public abstract String getCommitUrlPath();
 
     @Override
     public boolean equals(Object o) {

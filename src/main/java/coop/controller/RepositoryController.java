@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import coop.dao.RepositoryDao;
 import coop.dao.TaskDao;
 import coop.dao.UserDao;
+import coop.model.Cycle;
 import coop.model.ImpactedProjectFile;
 import coop.model.Task;
 import coop.model.User;
@@ -22,6 +23,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -127,6 +129,9 @@ public class RepositoryController {
         int taskId = Integer.parseInt(rawTaskId);
         TaskDao taskDao = new TaskDao();
         Task task = taskDao.getTask(taskId);
+        Cycle cycle = task.getBoard().getCycle();
+        Date cycleStartDate = cycle.getStartDate();
+
         RepositoryProject repositoryProject = new RepositoryDao().findRepositoryProject(repositoryProjectId);
         RepositoryHost repositoryHost = repositoryProject.getRepositoryHost();
         ObjectMapper mapper = new ObjectMapper();
@@ -141,7 +146,7 @@ public class RepositoryController {
         }
 
         try {
-            Map<String, Set<String>> projectFileTree = repositoryHost.retrieveProjectFilesFromRepository(repositoryProject, branchName);
+            Map<String, Set<String>> projectFileTree = repositoryHost.retrieveProjectFilesFromRepository(repositoryProject, branchName, cycleStartDate);
             if(task != null && task.getImpactedFiles() != null && !task.getImpactedFiles().isEmpty()) {
                 for(ImpactedProjectFile impactedProjectFile: task.getImpactedFiles()) {
                     path = impactedProjectFile.getPath();

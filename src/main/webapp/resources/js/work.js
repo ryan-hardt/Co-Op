@@ -6,7 +6,7 @@ let colorMap = new Map([
 	["Helper", 'darkgrey'],
 	["Reviewer", '#DE5B49'],
 	["Research", '#F0CA4D'],
-	["Feature Implementation", '#46B29D'],
+	["Feature", '#46B29D'],
 	["Bug Fix", '#324D5C'],
 	["Unit Test", '#4B87A8'],
 	["Refactor", '#E37B40'],
@@ -191,7 +191,10 @@ function createChart(dataMap, userId, chartTitle) {
 					}
 				},
 				legend: {
-					position: 'top'
+					position: 'right',
+					labels: {
+						textAlign: 'left'
+					}
 				}
 			}
 		}

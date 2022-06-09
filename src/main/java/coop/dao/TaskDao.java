@@ -31,7 +31,7 @@ public class TaskDao extends HibernateDao {
 
         try {
             insertTaskTransaction = session.beginTransaction();
-            task.setTaskId((Integer) session.save(task));
+            session.persist(task);
             insertTaskTransaction.commit();
             success = true;
         } catch (HibernateException e) {
@@ -95,33 +95,6 @@ public class TaskDao extends HibernateDao {
     }
 
     /**
-     * Get all of the project tasks from the task database.
-     *
-     * @return a List of Task models
-     */
-    @SuppressWarnings({"unchecked"})
-    public List<Task> getAllProjectTasks(Project p) {
-        List<Task> allProjectTasks = new ArrayList<Task>();
-        Session session = sessionFactory.openSession();
-        Transaction tx = null;
-        try {
-            tx = session.beginTransaction();
-            Query<Task> query = session.createQuery("FROM Task WHERE project = :p");
-            query.setParameter("p", p);
-            allProjectTasks.addAll(query.list());
-            tx.commit();
-        } catch (Exception e) {
-            if (tx != null) {
-                tx.rollback();
-            }
-            e.printStackTrace();
-        } finally {
-            session.close();
-        }
-        return allProjectTasks;
-    }
-
-    /**
      * Updates a task in the database with whatever changes were made to it.
      *
      * This is the U in CRUD.
@@ -136,33 +109,7 @@ public class TaskDao extends HibernateDao {
 
         try {
             updateTaskTransaction = session.beginTransaction();
-            session.update(task);
-            updateTaskTransaction.commit();
-            success = true;
-        } catch (HibernateException e) {
-            if (updateTaskTransaction != null) {
-                updateTaskTransaction.rollback();
-            }
-
-            success = false;
-            e.printStackTrace();
-        } finally {
-            session.close();
-        }
-
-        return success;
-    }
-
-    public boolean updateTasks(List<Task> tasks) {
-        Session session = sessionFactory.openSession();
-        Transaction updateTaskTransaction = null;
-        boolean success;
-
-        try {
-            updateTaskTransaction = session.beginTransaction();
-            for(Task t: tasks) {
-                session.update(t);
-            }
+            session.merge(task);
             updateTaskTransaction.commit();
             success = true;
         } catch (HibernateException e) {
@@ -198,7 +145,7 @@ public class TaskDao extends HibernateDao {
             Board b = task.getBoard();
             b.removeTask(task);
             boardDao.update(b);
-            session.delete(task);
+            session.remove(task);
             deleteTaskTransaction.commit();
             success = true;
         } catch (HibernateException e) {
@@ -241,7 +188,7 @@ public class TaskDao extends HibernateDao {
 
         try {
             tx = session.beginTransaction();
-            Query<ImpactedProjectFile> query = session.createQuery("FROM ImpactedProjectFile WHERE path = :p AND branch = :b");
+            Query<ImpactedProjectFile> query = session.createQuery("FROM ImpactedProjectFile WHERE path = :p AND branch = :b", ImpactedProjectFile.class);
             query.setParameter("p", path);
             query.setParameter("b", branch);
             List<ImpactedProjectFile> impactedProjectFiles = query.list();
@@ -267,7 +214,7 @@ public class TaskDao extends HibernateDao {
         Transaction tx = null;
         try {
             tx = session.beginTransaction();
-            Query<Task> query = session.createQuery("FROM Task t WHERE :ipf IN elements(t.impactedFiles)");
+            Query<Task> query = session.createQuery("FROM Task t WHERE :ipf IN elements(t.impactedFiles)", Task.class);
             query.setParameter("ipf", impactedFile);
             List<Task> referencingTasks = query.list();
             if(referencingTasks == null || referencingTasks.isEmpty()) {
@@ -293,10 +240,10 @@ public class TaskDao extends HibernateDao {
 
         try {
             tx = session.beginTransaction();
-            Query<ImpactedProjectFile> getImpactedProjectFileQuery = session.createQuery("FROM ImpactedProjectFile WHERE path = :impactedFilePath");
+            Query<ImpactedProjectFile> getImpactedProjectFileQuery = session.createQuery("FROM ImpactedProjectFile WHERE path = :impactedFilePath", ImpactedProjectFile.class);
             getImpactedProjectFileQuery.setParameter("impactedFilePath", impactedFilePath);
             ImpactedProjectFile impactedProjectFile = getImpactedProjectFileQuery.getSingleResult();
-            Query<Task> taskQuery = session.createQuery("FROM Task t WHERE :ipf IN elements(t.impactedFiles)");
+            Query<Task> taskQuery = session.createQuery("FROM Task t WHERE :ipf IN elements(t.impactedFiles)", Task.class);
             taskQuery.setParameter("ipf", impactedProjectFile);
             List<Task> referencingTasks = taskQuery.list();
 

@@ -37,7 +37,7 @@
 		   				</div>
                         <div id="branchField" class="form-group" style="margin-top:2%">
 							<form name="cycleTeamBranchForm" id="cycleTeamBranchForm" method="post" action="/coop/cycle/updateTeamBranch/${cycle.getId()}">
-								<label for="teamBranch">Team Branch</label>
+								<label for="teamBranch">Team Branch</label> <a href="#" data-toggle="popover" data-content="Select the branch into which your team has merged their cycle contributions."><i class="fa fa-question-circle" aria-hidden="true"></i></a>
 								<select class="form-control" id="teamBranch" name="teamBranch" <c:if test="${!cycle.getBoard().isActive() || !isMember}">disabled</c:if>>
 									<option id="emptyBranchOption" value="">Choose a repository branch</option>
 									<c:forEach var="repositoryProjectBranch" items="${repositoryProjectBranches}">
@@ -102,7 +102,7 @@
 										<c:if test="${userStats.value.allCommits.size() gt 0}">
 										<c:forEach items="${userStats.value.allCommits}" var="commit">
 										<hr/>
-										<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${projectUrl}/-/commits/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
+										<c:if test="${userStats.value.mergedCommits.contains(commit)}">[merged] </c:if><a href="${commitBaseUrl}/${commit.commitId}" target="_blank">${commit.commitMessage}</a><br/>
 										Added: ${commit.numLinesAdded} Deleted: ${commit.numLinesDeleted}<br/>
 										<fmt:formatDate type="both" timeStyle="short" value="${commit.committedDate}"/><br/>
 										</c:forEach>
@@ -120,6 +120,7 @@
         </c:if>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.2.0/chart.min.js" integrity="sha512-VMsZqo0ar06BMtg0tPsdgRADvl0kDHpTbugCBBrL55KmucH6hP9zWdLIWY//OTfMnzz6xWQRxQqsUFefwHuHyg==" crossorigin="anonymous"></script>
 		<script src="<c:url value='/resources/js/work.js'/>"></script>
+		<script src="<c:url value='/resources/js/cycle.js'/>"></script>
 		<script>initializeCycleChart(${cycle.getId()}, ${cycle.getStartDate().getTime()}, ${cycle.getEndDate().getTime()})</script>
 		<script>initializeWorkStats('cycle', ${cycle.getId()})</script>
 	</jsp:body>

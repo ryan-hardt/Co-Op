@@ -5,7 +5,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import javax.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.CriteriaQuery;
 
 import coop.model.*;
 import org.hibernate.HibernateException;
@@ -161,13 +161,13 @@ public class CycleDao extends HibernateDao {
 
 				tx = session.beginTransaction();
 				for (TaskHistory th : taskHistories) {
-					session.delete(th);
+					session.remove(th);
 				}
 				for (Task task : tasks) {
-					session.delete(task);
+					session.remove(task);
 				}
-				session.delete(cycle);
-				session.delete(cycle.getBoard());
+				session.remove(cycle);
+				session.remove(cycle.getBoard());
 				tx.commit();
 				result = true;
 			}
@@ -203,7 +203,7 @@ public class CycleDao extends HibernateDao {
 
 		try {
 			tx = session.beginTransaction();
-			session.save(cycle);
+			session.persist(cycle);
 			tx.commit();
 
 			if (Integer.valueOf(cycle.getId()) != null) {

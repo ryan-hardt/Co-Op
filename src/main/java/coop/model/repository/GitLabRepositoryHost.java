@@ -7,7 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-import javax.persistence.Entity;
+import jakarta.persistence.Entity;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -104,12 +104,14 @@ public class GitLabRepositoryHost extends RepositoryHost {
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
         HttpEntity<?> entity = new HttpEntity<>(headers);
 
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00");
-        String startDateStr = sdf.format(startDate);
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
         String endDateStr = sdf.format(endDate);
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName + "&with_stats=true&since=" + startDateStr + "&until=" + endDateStr;
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits?ref_name=" + branchName + "&with_stats=true&until=" + endDateStr;
+            if(startDate != null) {
+                url += "&since=" + sdf.format(startDate);
+            }
             URI apiUri = new URI(url);
             ResponseEntity<GitLabCommit[]> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommit[].class);
 
@@ -125,32 +127,12 @@ public class GitLabRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public Commit retrieveCommitFromRepository(RepositoryProject repositoryProject, String commitId) {
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-        try {
-            String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits/"+commitId;
-            URI apiUri = new URI(url);
-            ResponseEntity<GitLabCommit> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommit.class);
-            GitLabCommit gitLabCommit = response.getBody();
-            Date commitDate = (new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS-05:00")).parse(gitLabCommit.getCommitted_date());
-            GitLabCommitStats commitStats = gitLabCommit.getStats();
-            return new Commit(gitLabCommit.getShort_id(), gitLabCommit.getMessage(), gitLabCommit.getAuthor_name(), commitDate, commitStats.getAdditions(), commitStats.getDeletions());
-        } catch(Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    @Override
-    public Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName) {
+    public Map<String, Set<String>> retrieveProjectFilesFromRepository(RepositoryProject repositoryProject, String branchName, Date untilDate) {
         Map<String, Set<String>> projectFiles = new TreeMap<String, Set<String>>();
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
-            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/tree?per_page=100&ref="+getNamespacedPathEncoding(branchName);
+            String commitId = getLatestCommitIdBeforeDate(repositoryProject, branchName, untilDate);
+            String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/tree?per_page=100&ref="+commitId;
             processGitLabRepositoryTree(projectFiles, repositoryProject.getName(), repositoryProject.getName(), url);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -159,16 +141,21 @@ public class GitLabRepositoryHost extends RepositoryHost {
     }
 
     @Override
-    public List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId) {
+    public List<String> retrieveModifiedFilesFromRepositoryCommit(RepositoryProject repositoryProject, String commitId, Set<String> ignoredFiles) {
         List<String> modifiedFiles = new ArrayList<String>();
         try {
             String repositoryProjectUrl = getNamespacedPathEncoding(repositoryProject.getRepositoryProjectUrl());
             String url = repositoryHostUrl + "/api/v4/projects/" + repositoryProjectUrl + "/repository/commits/"+getNamespacedPathEncoding(commitId)+"/diff";
-            processGitLabCommitDiffs(modifiedFiles, repositoryProject.getName(), url);
+            processGitLabCommitDiffs(modifiedFiles, repositoryProject.getName(), url, ignoredFiles);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
         return modifiedFiles;
+    }
+
+    @Override
+    public String getCommitUrlPath() {
+        return "/-/commits";
     }
 
     private void processGitLabRepositoryTree(Map<String, Set<String>> projectFiles, String projectName, String parentKey, String url) {
@@ -199,7 +186,7 @@ public class GitLabRepositoryHost extends RepositoryHost {
         }
     }
 
-    private void processGitLabCommitDiffs(List<String> modifiedFiles, String projectName, String url) {
+    private void processGitLabCommitDiffs(List<String> modifiedFiles, String projectName, String url, Set<String> ignoredFiles) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Private-Token", JasyptUtil.decrypt(accessToken));
@@ -209,12 +196,26 @@ public class GitLabRepositoryHost extends RepositoryHost {
             URI apiUri = new URI(url);
             ResponseEntity<GitLabCommitDiff[]> response = restTemplate.exchange(apiUri, HttpMethod.GET, entity, GitLabCommitDiff[].class);
             for(GitLabCommitDiff commitDiff : response.getBody()) {
-                if(!commitDiff.new_file && !commitDiff.renamed_file) {
-                    modifiedFiles.add(projectName + "/" + commitDiff.new_path);
+                String filePath = projectName + "/" + commitDiff.new_path;
+                if(ignoredFiles.contains(filePath)) {
+                    modifiedFiles.remove(filePath); //remove if present
+                } else if(!commitDiff.new_file && !commitDiff.renamed_file) {
+                    modifiedFiles.add(filePath);
+                } else if(commitDiff.new_file) {
+                    ignoredFiles.add(filePath);
                 }
             }
         } catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    private String getLatestCommitIdBeforeDate(RepositoryProject repositoryProject, String branchName, Date date) {
+        List<Commit> commits = retrieveCommitsFromRepository(repositoryProject, branchName, null, date);
+        if(commits != null && !commits.isEmpty()) {
+            return commits.get(0).getCommitId();
+        } else {
+            return null;
         }
     }
 

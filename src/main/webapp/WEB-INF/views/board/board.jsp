@@ -126,7 +126,7 @@
 								</select>
 							</div>
 							<div class="form-group">
-								<label for="fmtCompletionDateEst">Estimated Completion Date</label>
+								<label for="fmtCompletionDateEst">Estimated Completion Date</label> <a href="#" data-toggle="popover" data-content="This is intended to provide reviewers with an estimate on when they can review a task."><i class="fa fa-question-circle" aria-hidden="true"></i></a>
 								<input type="datetime" class="form-control" id="fmtCompletionDateEst" name="fmtCompletionDateEst" value="" placeholder="MM/DD/YYYY" <c:if test="${!board.isActive() || !isMember}">disabled</c:if>>
 							</div>
 							<div class="form-group">
@@ -151,7 +151,7 @@
 					<div id="task-impact">
 						<div id="task-impact-list">
 						</div>
-						<button id="toggle-impact-form" class="btn other-btn">Add Impacted Files</button>
+						<button id="toggle-impact-form" class="btn other-btn">Add Impacted Files</button> <a href="#" data-toggle="popover" data-content="Impacted files must be selected for all coding tasks after selecting a branch on the Details tab."><i class="fa fa-question-circle" aria-hidden="true"></i></a>
 						<div id="impact-form-container">
 							<form id="addImpactForm" name="addImpactForm" method="post" onsubmit="return false;">
 								<input type="hidden" id="repositoryProjectId" name="repositoryProjectId" value="${repositoryProjectId}">
@@ -217,7 +217,7 @@
 								</div>
 								<button id="submit-work-btn" class="btn submit-btn">Submit</button>
 							</form>
-							<button id="add-work-btn" class="btn other-btn">Add</button>
+							<button id="add-work-btn" class="btn other-btn">Add</button> <a href="#" id="addWorkPopover" data-toggle="popover" data-content="A user must be assigned to a role to report work on a task."><i class="fa fa-question-circle" aria-hidden="true"></i></a>
 							</c:if>
 						</div>
 						<div id="task-work-list">
@@ -265,7 +265,8 @@
 		</div>
      </div>
 	<!-- multiSelectBox.js should be referenced before page js -->
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>	<script src="<c:url value='/resources/js/multiSelectBox.js'/>"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.12.1/jquery-ui.min.js" integrity="sha512-uto9mlQzrs59VwILcLiRYeLKPPbS/bT71da/OEBYEwcdNUk8jYIy+D176RYoop1Da+f9mvkYrmj5MCLZWEtQuA==" crossorigin="anonymous"></script>
+	<script src="<c:url value='/resources/js/multiSelectBox.js'/>"></script>
 	<script src='<c:url value="/resources/js/board.js"/>'></script>
 	<script>generateContent(${board.getBoardId()}, ${board.getCycle()!=null}, ${board.isActive()})</script>
 	</jsp:body>

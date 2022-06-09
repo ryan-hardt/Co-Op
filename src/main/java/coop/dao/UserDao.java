@@ -3,7 +3,6 @@ package coop.dao;
 import java.util.ArrayList;
 import java.util.List;
 
-import coop.model.Project;
 import org.hibernate.Transaction;
 import org.hibernate.query.Query;
 import org.hibernate.Session;
@@ -13,27 +12,6 @@ import coop.model.User;
 import coop.util.BCrypt;
 
 public class UserDao extends HibernateDao {
-  
-  @SuppressWarnings("unchecked")
-  public List<User> getAllUsers() {
-	  List<User> users = new ArrayList<User>();
-	  Session session = sessionFactory.openSession();
-	    Transaction tx = null;
-	    try {
-	    	  tx = session.beginTransaction();	          
-	          Query<User> query = session.createQuery("FROM User");	          
-	          users.addAll(query.list());
-	          tx.commit();
-	        } catch (Exception e) {
-	          if (tx != null) {
-	            tx.rollback();
-	          }
-	          e.printStackTrace();
-	        } finally {
-	          session.close();
-	        }
-	    return users;
-  }
 
   @SuppressWarnings("unchecked")
   public List<User> getActiveUsers() {
@@ -42,7 +20,7 @@ public class UserDao extends HibernateDao {
 	    Transaction tx = null;
 	    try {
 	    	  tx = session.beginTransaction();	          
-	          Query<User> query = session.createQuery("FROM User WHERE isActive = 1");	          
+	          Query<User> query = session.createQuery("FROM User WHERE isActive = 1", User.class);
 	          users.addAll(query.list());
               tx.commit();
 	        } catch (Exception e) {
@@ -57,34 +35,6 @@ public class UserDao extends HibernateDao {
   }
   
   @SuppressWarnings("unchecked")
-  public User getUser(String username, String hash) {
-    Session session = sessionFactory.openSession();
-    Transaction tx = null;
-    try {
-      tx = session.beginTransaction();
-      // #TODO PASSWORD VALIDATION
-      Query<User> query =
-          session.createQuery("FROM User WHERE username = :username AND hash = :hash");
-      query.setParameter("username", username);
-      query.setParameter("hash", hash);
-      List<User> users = query.list();
-      tx.commit();
-      if (users.size() == 1) {
-        User u = users.get(0);
-        return u;
-      }
-    } catch (Exception e) {
-      if (tx != null) {
-        tx.rollback();
-      }
-      e.printStackTrace();
-    } finally {
-      session.close();
-    }
-    return null;
-  }
-  
-  @SuppressWarnings("unchecked")
   public User getUser(String username) {
     Session session = sessionFactory.openSession();
     Transaction tx = null;
@@ -92,7 +42,7 @@ public class UserDao extends HibernateDao {
       tx = session.beginTransaction();
       // #TODO PASSWORD VALIDATION
       Query<User> query =
-          session.createQuery("FROM User WHERE username = :username");
+          session.createQuery("FROM User WHERE username = :username", User.class);
       query.setParameter("username", username);
       List<User> users = query.list();
       tx.commit();
@@ -118,7 +68,7 @@ public class UserDao extends HibernateDao {
     try {
       tx = session.beginTransaction();
       // #TODO PASSWORD VALIDATION
-      Query<User> query = session.createQuery("FROM User WHERE id = :id");
+      Query<User> query = session.createQuery("FROM User WHERE id = :id", User.class);
       query.setParameter("id", id);
       List<User> users = query.list();
       tx.commit();
@@ -143,7 +93,7 @@ public class UserDao extends HibernateDao {
     boolean isSuccessful = true;
     try {
       tx = session.beginTransaction();
-      session.update(user);
+      session.merge(user);
       tx.commit();
     } catch (Exception e) {
       if (tx != null) {
@@ -163,7 +113,7 @@ public class UserDao extends HibernateDao {
     boolean isSuccessful = true;
     try {
       tx = session.beginTransaction();
-      session.save(user);
+      session.persist(user);
       tx.commit();
     } catch (Exception e) {
       if (tx != null) {
@@ -199,26 +149,6 @@ public class UserDao extends HibernateDao {
       System.out.println("VERIFIED IS FALSE");
     }
     return verified;
-  }
-
-  public boolean deleteUser(User user) {
-    Session session = sessionFactory.openSession();
-    Transaction tx = null;
-    boolean isSuccessful = true;
-    try {
-      tx = session.beginTransaction();
-      session.delete(user);
-      tx.commit();
-    } catch (Exception e) {
-      if (tx != null) {
-        tx.rollback();
-      }
-      isSuccessful = false;
-      e.printStackTrace();
-    } finally {
-      session.close();
-    }
-    return isSuccessful;
   }
 
   public static boolean loggedIn(HttpServletRequest request) {

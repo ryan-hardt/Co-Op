@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import coop.model.Project;
 import org.hibernate.annotations.Cascade;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.Objects;
 
 @Entity
@@ -77,6 +77,10 @@ public class RepositoryProject {
 
     public void setRepositoryHost(RepositoryHost repositoryHost) {
         this.repositoryHost = repositoryHost;
+    }
+
+    public String getCommitBaseUrl() {
+        return repositoryProjectUrl + repositoryHost.getCommitUrlPath();
     }
 
     @Override

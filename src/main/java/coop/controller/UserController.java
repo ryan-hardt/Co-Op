@@ -41,15 +41,11 @@ public class UserController {
 		//user viewing own page
 		if (requestedUser == null || userId == sessionUser.getId().intValue()) {
 			StatsDao workDao = new StatsDao();
-			double workPercentile = workDao.getTotalWorkPercentile(sessionUser);
-			double collaboratorPercentile = workDao.getTotalCollaboratorPercentile(sessionUser);
-			
+
 			model.addAttribute("user", sessionUser);
 			model.addAttribute("userProject", sessionUser.getProjects());
 			model.addAttribute("userTasks", sessionUser.getAllTasks());
 			model.addAttribute("updatable", true);
-			model.addAttribute("workPercentile", CoOpUtil.toPercentage(workPercentile, 1));
-			model.addAttribute("collaboratorPercentile", CoOpUtil.toPercentage(collaboratorPercentile, 1));
 			//add other projects with same repository
 			List<Project> otherProjects = projectDao.getUnassignedProjectsWithSameRepository(sessionUser);
             model.addAttribute("otherProjects", otherProjects);

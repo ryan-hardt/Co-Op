@@ -5,7 +5,7 @@ let isUserAssignedToTask = false;
 let newTaskField = null;
 let isBoardActive = false;
 let taskStatuses = ["Not Started", "Impact Analysis", "In Progress", "Review", "Completed"];
-let taskTags = ["Research", "Feature Implementation", "Unit Test", "Bug Fix", "Refactor", "Other"];
+let taskTags = ["Research", "Feature", "Unit Test", "Bug Fix", "Refactor", "Other"];
 let taskRoles = ["Owner", "Helper", "Reviewer"];
 let hoverCounter = 0;
 
@@ -47,7 +47,8 @@ $(function() {
 	$('#add-work-btn').click(function() {
 		if(isBoardActive) {
 			$('#addWorkForm').show();
-			$('#add-work-btn').hide();
+			$("#add-work-btn").hide();
+			$("#addWorkPopover").hide();
 		}
 	});
 
@@ -181,26 +182,40 @@ $(function() {
 	});
 	
 	$('#submit-task-users-btn').click(function () {
-		let error = true;
+		let hasOwner = false;
 		let isAssigningUser = false;
+		let isUnassigningUser = false;
+		let unassignError = false;
 		//cycle board
 		if(document.taskUsersUpdateForm.isCycleBoard.value == 'true') {
 			$("[name^=users-]").each(function() {
 				if($(this).is(':checked') && $(this).attr("id").endsWith("owner")) {
-					error = false;
+					hasOwner = true;
 				}
 				//if current user is being assigned to task
 				let currentUserId = $("#userId").attr("value");
 				if($(this).is(':checked') && $(this).attr("id").startsWith(currentUserId+"-") && $(this).attr("value") !== "None") {
 					isAssigningUser = true;
+				} else if($(this).is(':checked') && $(this).attr("value") === "None") {
+					let elementId = $(this).attr("id");
+					let userIdToUpdate = elementId.substring(0,elementId.indexOf("-"));
+					if(userIdToUpdate === currentUserId) {
+						isUnassigningUser = true;
+					}
+					//if user being unassigned has reported work, generate error
+					if($("li[id^=work-"+userIdToUpdate+"-]").length) {
+						unassignError = true;
+						$('#taskFormErrors').html("A user with a role of None has already reported work.");
+						$('#taskFormErrors').show();
+					}
 				}
 			});
-			if(error) {
+			if(!hasOwner) {
 				$('#taskFormErrors').html("Please select a task owner.");
 				$('#taskFormErrors').show();
 			}
 			//submit form if all values present
-			else {
+			else if(!unassignError) {
 				const url = "updateTaskUsers/"+$("#taskId").val();
 				jQuery.ajax(
 					url, {
@@ -213,7 +228,10 @@ $(function() {
 							//if current user is assigned to task, allow work to be added
 							if(isAssigningUser) {
 								isUserAssignedToTask = true;
-								$("#add-work-btn").show();
+								$("#add-work-btn").prop("disabled", false);
+							} else if(isUnassigningUser) {
+								isUserAssignedToTask = false;
+								$("#add-work-btn").prop("disabled", true);
 							}
 						},
 						error: () => {
@@ -233,7 +251,8 @@ $(function() {
 				data: $("#addWorkForm").serialize(),
 				success: (data,status) => {
 					$('#addWorkForm').hide();
-					$('#add-work-btn').show();
+					$("#add-work-btn").show();
+					$("#addWorkPopover").show();
 					refreshBoard();
 					populateTaskWork(data);
 				},
@@ -288,6 +307,8 @@ $(function() {
 	});
 
 	$("#roleFilter").hide();
+
+	$('[data-toggle="popover"]').popover();
 });
 
 function refreshBoard() {
@@ -453,9 +474,9 @@ function populateTaskWork(card) {
 	let userId = $("#userId").attr("value");
 	let userIsAssigned = isUserAssigned(userId, card);
 	if(userIsAssigned) {
-		$("#add-work-btn").show();
+		$("#add-work-btn").prop("disabled", false);
 	} else {
-		$("#add-work-btn").hide();
+		$("#add-work-btn").prop("disabled", true);
 	}
 	$('taskId').val(card.taskId);
 	$('#task-work-list').empty();
@@ -554,7 +575,7 @@ function removeAddedFilesFromList(task) {
 }
 
 function addWorkItem(id, date, userName, minutes, description, userId, workUserId) {
-	var workItemHTML = "<li id='" + id + "' class='list-group-item'>";
+	let workItemHTML = "<li id='work-" + workUserId + "-"+ id +"' class='list-group-item'>";
 	if(userId == workUserId && isBoardActive) {
 		workItemHTML += '<button id="delete-work-item" class="btn delete-btn list-btn" onclick="deleteWorkItem('+id+')">Delete</button>';
 	}
@@ -666,6 +687,7 @@ function getRepositoryTree(repositoryProjectId, branchName) {
 }
 
 function displayTaskDetails() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-impact").hide();
 	$("#task-impact-btn").removeClass("active-nav-btn");
 	$("#task-users").hide();
@@ -687,6 +709,7 @@ function displayTaskDetails() {
 }
 
 function displayTaskImpact() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-details").hide();
 	$("#task-details-btn").removeClass("active-nav-btn");
 	$("#task-users").hide();
@@ -704,11 +727,17 @@ function displayTaskImpact() {
 	$('#taskFormUpdated').hide();
 	$("#impact-form-container").hide();
 	$("#toggle-impact-form").html("Add Impacted Files");
+	if(isCodingTask($('#tag').find(":selected").val()) && $("#branch").find(":selected").val() !== "") {
+		$("#toggle-impact-form").prop("disabled", false);
+	} else {
+		$("#toggle-impact-form").prop("disabled", true);
+	}
 	$("#task-impact").show();
 	$("#task-impact-btn").addClass("active-nav-btn");
 }
 
 function displayTaskUsers() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-details").hide();
 	$("#task-details-btn").removeClass("active-nav-btn");
 	$("#task-impact").hide();
@@ -731,6 +760,7 @@ function displayTaskUsers() {
 }
 
 function displayTaskNotes() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-details").hide();
 	$("#task-details-btn").removeClass("active-nav-btn");
 	$("#task-impact").hide();
@@ -752,6 +782,7 @@ function displayTaskNotes() {
 }
 
 function displayTaskWork() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-details").hide();
 	$("#task-details-btn").removeClass("active-nav-btn");
 	$("#task-impact").hide();
@@ -769,14 +800,17 @@ function displayTaskWork() {
 	$('#taskFormUpdated').hide();
 
 	if(isUserAssignedToTask) {
-		$('#add-work-btn').show();
+		$("#add-work-btn").prop("disabled", false);
 	}
 	$('#addWorkForm').hide();
+	$("#add-work-btn").show();
+	$("#addWorkPopover").show();
 	$("#task-work").show();
 	$("#task-work-btn").addClass("active-nav-btn");
 }
 
 function displayTaskHistory() {
+	$('[data-toggle="popover"]').popover('hide');
 	$("#task-details").hide();
 	$("#task-details-btn").removeClass("active-nav-btn");
 	$("#task-impact").hide();
@@ -1085,7 +1119,8 @@ function initCycleBoardCard(card) {
 
 		/* allow return key to finish editing */
 		jqCardTextInput.keyup(function(e) {
-			if(e.which == 13) {
+			if(e.which === 13) {
+				jqCardTextInput[0].onblur = "";
 				processNewCardText(e);
 			}
 		});
@@ -1193,7 +1228,7 @@ function isUserReviewer(userId, card) {
 }
 
 function isCodingTask(tag) {
-	return tag == 'Feature Implementation' || tag == 'Unit Test' || tag == 'Bug Fix' || tag == 'Refactor';
+	return tag == 'Feature' || tag == 'Unit Test' || tag == 'Bug Fix' || tag == 'Refactor';
 }
 
 function displayError(text) {
