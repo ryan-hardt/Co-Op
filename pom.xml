@@ -157,7 +157,7 @@
 		<dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
-			<version>20220320</version>
+			<version>20231013</version>
 		</dependency>
 		<!-- https://mvnrepository.com/artifact/org.eclipse.mylyn.github/org.eclipse.egit.github.core -->
 		<dependency>
